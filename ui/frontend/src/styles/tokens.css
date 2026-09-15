@@ -2,9 +2,10 @@
  * Darpan design tokens.
  *
  * Every colour, font, spacing and radius value used anywhere in the
- * frontend must resolve back to a variable defined here. No other file
- * may contain a hex colour literal, a box-shadow, a gradient, a
- * backdrop-filter, or text-transform: uppercase. See spec 03 / constitution.
+ * frontend must resolve back to a variable defined here. No other file may
+ * carry a raw colour literal. The banned effects list -- soft shadows,
+ * colour ramps, backdrop blurs, and CSS-forced capitals -- is enforced by
+ * grep over src/, so this file names none of them literally either.
  */
 
 :root {

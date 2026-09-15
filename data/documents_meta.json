@@ -1,0 +1,30 @@
+[
+  {
+    "id": "brand-standard",
+    "title": "Darpan Brand Standard",
+    "filename": "brand-standard.md",
+    "department": "All departments",
+    "last_verified": "2026-09-11"
+  },
+  {
+    "id": "banquet-policy",
+    "title": "Banquet & Events Costing Policy",
+    "filename": "banquet-policy.md",
+    "department": "Banquets & Events",
+    "last_verified": "2026-08-01"
+  },
+  {
+    "id": "fnb-cost-policy",
+    "title": "F&B Procurement & Cost Policy",
+    "filename": "fnb-cost-policy.md",
+    "department": "Kitchen & Stewarding",
+    "last_verified": "2026-08-16"
+  },
+  {
+    "id": "expense-policy",
+    "title": "Purchase Requisition & Expense Policy",
+    "filename": "expense-policy.md",
+    "department": "Finance",
+    "last_verified": "2026-07-20"
+  }
+]

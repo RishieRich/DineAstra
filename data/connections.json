@@ -1,0 +1,37 @@
+[
+  {
+    "id": "pms",
+    "name": "Property Management System",
+    "vendor": "IDS Next / generic PMS",
+    "status": "not_connected",
+    "description": "Room inventory, rates and folio data."
+  },
+  {
+    "id": "pos",
+    "name": "Point of Sale",
+    "vendor": "Micros / generic POS",
+    "status": "not_connected",
+    "description": "F&B outlet sales and covers."
+  },
+  {
+    "id": "accounting",
+    "name": "Accounting Ledger",
+    "vendor": "Tally / generic ERP",
+    "status": "not_connected",
+    "description": "Purchase requisitions and cost ledgers."
+  },
+  {
+    "id": "whatsapp",
+    "name": "WhatsApp Business",
+    "vendor": "Meta Cloud API",
+    "status": "not_connected",
+    "description": "Send the GM digest directly to WhatsApp."
+  },
+  {
+    "id": "channel_manager",
+    "name": "Channel Manager",
+    "vendor": "generic OTA channel manager",
+    "status": "not_connected",
+    "description": "OTA rate and availability sync."
+  }
+]
