@@ -1,0 +1,25 @@
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# node
+node_modules/
+dist/
+.vite/
+
+# runtime data (generated, not committed)
+data/runtime/*.jsonl
+
+# editor / os
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

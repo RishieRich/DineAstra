@@ -1,0 +1,38 @@
+/*
+ * Darpan design tokens.
+ *
+ * Every colour, font, spacing and radius value used anywhere in the
+ * frontend must resolve back to a variable defined here. No other file
+ * may contain a hex colour literal, a box-shadow, a gradient, a
+ * backdrop-filter, or text-transform: uppercase. See spec 03 / constitution.
+ */
+
+:root {
+  /* Colour */
+  --color-burgundy: #5c1a2e;
+  --color-burgundy-deep: #3d0f1f;
+  --color-gold: #c9a24b;
+  --color-gold-soft: #e4cf9a;
+  --color-ink: #221417;
+  --color-paper: #faf6f0;
+  --color-line: #e4d9cd;
+  --color-muted: #8a7568;
+  --color-positive: #3f6b4a;
+  --color-negative: #9c3b2e;
+
+  /* Type */
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* Space */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+
+  /* Radius -- soft, never zero, never pill */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+}
