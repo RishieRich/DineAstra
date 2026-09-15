@@ -259,10 +259,10 @@ function Brain() {
               <div className="mt-md">
                 <DataTable
                   columns={[
-                    { key: 'number', header: 'No', align: 'right' },
+                    { key: 'number', header: 'No', align: 'right', nowrap: true },
                     { key: 'department', header: 'Department' },
                     { key: 'text', header: 'Task' },
-                    { key: 'line', header: 'Line', align: 'right' },
+                    { key: 'line', header: 'Line', align: 'right', nowrap: true },
                   ]}
                   rows={checklist.tasks}
                   getRowKey={(row) => `${row.department}-${row.number}`}

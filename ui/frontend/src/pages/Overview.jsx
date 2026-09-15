@@ -84,10 +84,10 @@ function Overview() {
         <div className="mt-md">
           <DataTable
             columns={[
-              { key: 'id', header: 'Event' },
+              { key: 'id', header: 'Event', nowrap: true },
               { key: 'name', header: 'Name' },
               { key: 'segment', header: 'Segment' },
-              { key: 'covers', header: 'Covers', align: 'right' },
+              { key: 'covers', header: 'Covers', align: 'right', nowrap: true },
               {
                 key: 'revenue_formatted',
                 header: 'Revenue',

@@ -107,13 +107,13 @@ function Proof() {
         <div className="mt-md">
           <DataTable
             columns={[
-              { key: 'id', header: 'Reference' },
+              { key: 'id', header: 'Reference', nowrap: true },
               { key: 'item', header: 'Item' },
               { key: 'department', header: 'Department' },
               { key: 'vendor', header: 'Vendor' },
-              { key: 'quantity', header: 'Qty', align: 'right' },
-              { key: 'unit_cost_formatted', header: 'Unit', align: 'right' },
-              { key: 'total_cost_formatted', header: 'Total', align: 'right' },
+              { key: 'quantity', header: 'Qty', align: 'right', nowrap: true },
+              { key: 'unit_cost_formatted', header: 'Unit', align: 'right', nowrap: true },
+              { key: 'total_cost_formatted', header: 'Total', align: 'right', nowrap: true },
             ]}
             rows={data.submissions}
             getRowKey={(row) => row.id}

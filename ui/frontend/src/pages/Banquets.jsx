@@ -54,16 +54,17 @@ function Banquets() {
 
       <DataTable
         columns={[
-          { key: 'id', header: 'Event' },
+          { key: 'id', header: 'Event', nowrap: true },
           { key: 'name', header: 'Name' },
-          { key: 'segment', header: 'Segment' },
+          { key: 'segment', header: 'Segment', nowrap: true },
           {
             key: 'date',
             header: 'Date',
+            nowrap: true,
             render: (row) => formatDateShort(row.date),
           },
-          { key: 'covers', header: 'Covers', align: 'right' },
-          { key: 'revenue_formatted', header: 'Revenue', align: 'right' },
+          { key: 'covers', header: 'Covers', align: 'right', nowrap: true },
+          { key: 'revenue_formatted', header: 'Revenue', align: 'right', nowrap: true },
           {
             key: 'margin_formatted',
             header: 'Margin',

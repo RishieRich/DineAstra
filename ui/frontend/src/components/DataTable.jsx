@@ -1,9 +1,13 @@
 /**
  * A plain ruled table. Rules, not fills; alignment, not weight.
  *
- * columns: [{ key, header, align, render }]
+ * columns: [{ key, header, align, render, nowrap }]
  * rows:    array of objects
  * onRowClick: optional; when present rows become keyboard-reachable buttons.
+ *
+ * nowrap keeps short values -- references, dates, figures -- on one line, so
+ * on a narrow screen the table scrolls sideways instead of squeezing an event
+ * reference into three stacked lines.
  */
 function DataTable({ columns, rows, onRowClick, getRowKey, emptyMessage }) {
   if (!rows || rows.length === 0) {
@@ -28,7 +32,7 @@ function DataTable({ columns, rows, onRowClick, getRowKey, emptyMessage }) {
                 scope="col"
                 className={`py-sm pr-md text-xs font-medium tracking-[0.12em] text-muted ${alignClass(
                   col.align,
-                )}`}
+                )} ${col.nowrap ? 'whitespace-nowrap' : ''}`}
               >
                 {col.header}
               </th>
@@ -62,7 +66,9 @@ function DataTable({ columns, rows, onRowClick, getRowKey, emptyMessage }) {
                 {columns.map((col) => (
                   <td
                     key={col.key}
-                    className={`py-sm pr-md text-ink ${alignClass(col.align)}`}
+                    className={`py-sm pr-md text-ink ${alignClass(col.align)} ${
+                      col.nowrap ? 'whitespace-nowrap' : ''
+                    }`}
                   >
                     {col.render ? col.render(row) : row[col.key]}
                   </td>
