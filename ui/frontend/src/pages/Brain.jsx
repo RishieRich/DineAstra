@@ -102,9 +102,9 @@ function Brain() {
   return (
     <div className="flex flex-col gap-xl">
       <SectionHeading
-        eyebrow="Property brain"
-        title="The property's own documents, searchable"
-        support="Ask a question and get the clause that answers it, alongside the figure that clause governs."
+        eyebrow="Operating brain"
+        title="Turn operating documents into useful answers"
+        support="Ask a question and get the exact clause alongside the figure that clause governs."
       />
 
       <div>

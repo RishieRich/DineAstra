@@ -434,12 +434,12 @@ def overview_alert(day: str) -> dict | None:
 # ---------------------------------------------------------------------------
 
 OVERVIEW_METRIC_KEYS = [
-    "occupancy_pct",
-    "adr",
-    "revpar",
     "total_revenue",
+    "fnb_revenue",
     "food_cost_pct",
     "gop_pct",
+    "checklist_signoff_pct",
+    "banquet_event_count",
 ]
 
 
@@ -477,7 +477,7 @@ def overview(day: str) -> dict:
         ],
         "corporate_margin": corporate.to_dict(),
         "digest": whatsapp_digest(day),
-        "mode": "sample data",
+        "mode": "sample + uploaded data",
     }
 
 
@@ -495,11 +495,11 @@ def whatsapp_digest(day: str) -> dict:
     alert = overview_alert(day)
 
     lines = [
-        f"Darpan daily update, {fmt.format_date_long(day)}",
+        f"DineAstra daily update, {fmt.format_date_long(day)}",
         "",
-        f"Occupancy {metrics['occupancy_pct'].formatted} rahi, ADR {metrics['adr'].formatted}.",
-        f"Total revenue {metrics['total_revenue'].formatted} hua, GOP margin {metrics['gop_pct'].formatted}.",
-        f"Food cost {metrics['food_cost_pct'].formatted} par hai.",
+        f"Total revenue {metrics['total_revenue'].formatted} hua, jisme F&B {metrics['fnb_revenue'].formatted} hai.",
+        f"GOP margin {metrics['gop_pct'].formatted} aur food cost {metrics['food_cost_pct'].formatted} par hai.",
+        f"Daily standards sign-off {metrics['checklist_signoff_pct'].formatted} raha.",
     ]
 
     if alert:

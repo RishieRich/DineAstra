@@ -6,7 +6,7 @@ function StatusNote({ loading, error, emptyMessage }) {
   if (loading) {
     return (
       <p className="py-xl text-sm text-muted" role="status">
-        Reading the property records.
+        Reading the workspace records.
       </p>
     )
   }

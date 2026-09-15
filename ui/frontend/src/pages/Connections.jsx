@@ -18,7 +18,7 @@ function Connections() {
     <div className="flex flex-col gap-lg">
       <SectionHeading
         eyebrow="Connections"
-        title="Nothing is connected"
+        title="Integration readiness"
         support={data.note}
       />
 

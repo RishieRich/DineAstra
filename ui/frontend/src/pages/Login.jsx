@@ -1,11 +1,8 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import BrandMark from '../components/BrandMark'
 import { useSession } from '../lib/session'
 
-/**
- * Sign in. The demo credentials are printed on the card because this runs on
- * generated sample data and there is nothing behind it to protect.
- */
 function Login() {
   const { signIn } = useSession()
   const navigate = useNavigate()
@@ -17,12 +14,11 @@ function Login() {
 
   const destination = location.state?.from ?? '/overview'
 
-  async function handleSubmit(event) {
-    event.preventDefault()
+  async function submit(credentials) {
     setBusy(true)
     setError(null)
     try {
-      await signIn(email, password)
+      await signIn(credentials.email, credentials.password)
       navigate(destination, { replace: true })
     } catch (err) {
       setError(err.message)
@@ -31,74 +27,96 @@ function Login() {
     }
   }
 
+  async function handleSubmit(event) {
+    event.preventDefault()
+    await submit({ email, password })
+  }
+
   return (
-    <div className="flex min-h-full items-center justify-center bg-burgundy-deep px-md py-xl">
-      <div className="w-full max-w-md rounded-md border border-gold bg-burgundy p-lg">
-        <div className="flex flex-wrap items-center justify-between gap-sm">
-          <p className="text-xs tracking-[0.18em] text-gold-soft">
-            Property intelligence
-          </p>
-          <span className="rounded-sm border border-gold px-sm py-xs text-xs tracking-[0.14em] text-gold-soft">
-            Sample data
-          </span>
-        </div>
-        <h1 className="mt-sm font-serif text-4xl text-gold">Darpan</h1>
-        <p className="mt-sm text-sm text-gold-soft">
-          The daily briefing for the general manager, computed from the
-          property&rsquo;s own numbers.
-        </p>
-
-        <form onSubmit={handleSubmit} className="mt-lg flex flex-col gap-md">
-          <div>
-            <label htmlFor="email" className="block text-sm text-gold-soft">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="username"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="mt-xs w-full rounded-sm border border-gold bg-burgundy-deep px-md py-sm text-gold"
-              required
-            />
+    <div className="login-shell">
+      <section className="login-story" aria-label="DineAstra introduction">
+        <div className="orbit orbit-one" />
+        <div className="orbit orbit-two" />
+        <div className="login-story__inner">
+          <div className="brand-lockup brand-lockup--light">
+            <BrandMark inverse />
+            <div>
+              <p className="brand-name">DineAstra</p>
+              <p className="brand-byline">Restaurant intelligence by ARQ One AI Labs</p>
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm text-gold-soft">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="mt-xs w-full rounded-sm border border-gold bg-burgundy-deep px-md py-sm text-gold"
-              required
-            />
-          </div>
-
-          {error ? (
-            <p role="alert" className="text-sm text-gold-soft">
-              {error}
+          <div className="login-copy">
+            <p className="eyebrow eyebrow--gold">A private operating workspace</p>
+            <h1>Every service tells a story. See the whole business.</h1>
+            <p>
+              Sales, food cost, events, standards and daily exceptions come
+              together in one calm, decision-ready view.
             </p>
-          ) : null}
+          </div>
 
-          <button
-            type="submit"
-            disabled={busy}
-            className="rounded-sm border border-gold bg-gold px-md py-sm font-medium text-burgundy-deep"
-          >
-            {busy ? 'Signing in' : 'Sign in'}
+          <div className="login-promises">
+            <div><span>01</span><strong>Bring your files</strong><small>Excel, CSV and text intake</small></div>
+            <div><span>02</span><strong>See what changed</strong><small>Versioned records and live KPIs</small></div>
+            <div><span>03</span><strong>Ask DineAstra</strong><small>Plain-language answers over loaded data</small></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="login-access">
+        <div className="login-access__top">
+          <span><i /> Demo workspace</span>
+          <span>EN</span>
+        </div>
+
+        <form onSubmit={handleSubmit} className="login-card">
+          <BrandMark size="lg" />
+          <p className="eyebrow">Welcome back</p>
+          <h2>Enter the Astra House workspace</h2>
+          <p className="login-card__support">
+            Use the demo credentials below or continue instantly.
+          </p>
+
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="username"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Enter password"
+            required
+          />
+
+          {error ? <p role="alert" className="form-error">{error}</p> : null}
+
+          <button type="submit" disabled={busy} className="primary-button">
+            {busy ? 'Opening workspace…' : 'Continue securely'} <span aria-hidden="true">→</span>
           </button>
-        </form>
+          <button
+            type="button"
+            disabled={busy}
+            className="demo-button"
+            onClick={() => submit({ email: 'owner@darpan.demo', password: 'darpan' })}
+          >
+            Explore with sample data
+          </button>
 
-        <p className="mt-lg border-t border-gold pt-md text-xs text-gold-soft">
-          Sample data demo. Sign in with owner@darpan.demo and the password
-          darpan.
-        </p>
-      </div>
+          <p className="login-card__foot">
+            Demo access · no customer data · resettable workspace
+          </p>
+        </form>
+      </section>
     </div>
   )
 }

@@ -11,11 +11,11 @@ function AlertBlock({ alert }) {
 
   if (!alert) {
     return (
-      <div className="rounded-md border border-line p-lg">
-        <p className="text-xs tracking-[0.14em] text-muted">Today</p>
-        <p className="mt-sm font-serif text-2xl text-ink">Nothing needs you.</p>
-        <p className="mt-sm text-sm text-muted">
-          No threshold in the property&rsquo;s own policies was crossed today.
+      <div className="attention-card attention-card--quiet">
+        <p className="eyebrow">Today</p>
+        <p className="attention-card__title">Nothing needs you.</p>
+        <p className="attention-card__copy">
+          No threshold in the workspace policies was crossed today.
         </p>
       </div>
     )
@@ -25,15 +25,15 @@ function AlertBlock({ alert }) {
     <button
       type="button"
       onClick={() => navigate('/ask', { state: { question: alert.question } })}
-      className="w-full rounded-md border border-burgundy bg-burgundy p-lg text-left"
+      className="attention-card"
     >
-      <p className="text-xs tracking-[0.14em] text-gold-soft">
+      <p className="eyebrow eyebrow--gold">
         Needs your attention
       </p>
-      <p className="mt-sm font-serif text-2xl text-gold">{alert.headline}</p>
-      <p className="mt-sm text-sm text-gold-soft">{alert.detail}</p>
-      <p className="mt-md text-sm text-gold">
-        Ask Darpan: {alert.question}
+      <p className="attention-card__title">{alert.headline}</p>
+      <p className="attention-card__copy">{alert.detail}</p>
+      <p className="attention-card__ask">
+        Ask DineAstra: {alert.question} →
       </p>
       <ProvenanceLine
         provenance={alert.provenance}

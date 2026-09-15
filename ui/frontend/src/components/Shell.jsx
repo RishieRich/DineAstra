@@ -1,78 +1,105 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
+import BrandMark from './BrandMark'
 
-const NAV_ITEMS = [
-  { to: '/overview', label: 'Overview' },
-  { to: '/banquets', label: 'Banquets' },
-  { to: '/proof', label: 'Proof' },
-  { to: '/ask', label: 'Ask' },
-  { to: '/brain', label: 'Brain' },
-  { to: '/connections', label: 'Connections' },
+const NAV_GROUPS = [
+  {
+    label: 'Main',
+    items: [
+      { to: '/overview', label: 'Command centre', icon: '⌂' },
+      { to: '/ask', label: 'Ask DineAstra', icon: '✦' },
+      { to: '/data', label: 'Data Studio', icon: '↥', badge: 'NEW' },
+    ],
+  },
+  {
+    label: 'Operations',
+    items: [
+      { to: '/banquets', label: 'Events & banquets', icon: '◇' },
+      { to: '/proof', label: 'Daily proof', icon: '✓' },
+    ],
+  },
+  {
+    label: 'Intelligence',
+    items: [
+      { to: '/brain', label: 'Operating brain', icon: '◎' },
+      { to: '/connections', label: 'Connections', icon: '⌁' },
+    ],
+  },
 ]
 
-/**
- * The frame every signed-in screen sits in: burgundy masthead, ruled nav,
- * paper content well. The "Sample data" chip is part of the frame, so it
- * cannot go missing from a screen.
- */
+const TITLES = {
+  '/overview': 'Command centre',
+  '/ask': 'Ask DineAstra',
+  '/data': 'Data Studio',
+  '/banquets': 'Events & banquets',
+  '/proof': 'Daily proof',
+  '/brain': 'Operating brain',
+  '/connections': 'Connections',
+}
+
 function Shell({ children, user, onSignOut }) {
+  const location = useLocation()
+  const section = location.pathname.startsWith('/banquets/')
+    ? 'Event detail'
+    : TITLES[location.pathname] || 'Workspace'
+
   return (
-    <div className="flex min-h-full flex-col bg-paper">
-      <header className="bg-burgundy">
-        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-sm px-md py-md">
-          <div className="flex items-baseline gap-md">
-            <span className="font-serif text-2xl text-gold">Darpan</span>
-            <span className="rounded-sm border border-gold px-sm py-xs text-xs tracking-[0.14em] text-gold-soft">
-              Sample data
-            </span>
-          </div>
-          <div className="flex items-center gap-md">
-            {user ? (
-              <span className="text-sm text-gold-soft">
-                {user.name} <span className="text-gold">&middot;</span> {user.role}
-              </span>
-            ) : null}
-            {onSignOut ? (
-              <button
-                type="button"
-                onClick={onSignOut}
-                className="rounded-sm border border-gold px-md py-xs text-sm text-gold-soft"
-              >
-                Sign out
-              </button>
-            ) : null}
-          </div>
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="sidebar-brand">
+          <BrandMark inverse />
+          <div><p>DineAstra</p><small>by ARQ One AI Labs</small></div>
         </div>
 
-        <nav aria-label="Primary" className="border-t border-gold">
-          <ul className="mx-auto flex w-full max-w-6xl gap-lg overflow-x-auto overflow-y-hidden px-md">
-            {NAV_ITEMS.map((item) => (
-              <li key={item.to} className="shrink-0">
+        <div className="workspace-card">
+          <p>Client workspace</p>
+          <strong>Astra House Group</strong>
+          <small>Restaurant & hospitality operations</small>
+        </div>
+
+        <nav aria-label="Primary">
+          {NAV_GROUPS.map((group) => (
+            <div className="nav-group" key={group.label}>
+              <p>{group.label}</p>
+              {group.items.map((item) => (
                 <NavLink
+                  key={item.to}
                   to={item.to}
-                  className={({ isActive }) =>
-                    `-mb-px inline-block border-b-2 py-sm text-sm ${
-                      isActive
-                        ? 'border-gold text-gold'
-                        : 'border-transparent text-gold-soft'
-                    }`
-                  }
+                  className={({ isActive }) => `nav-link ${isActive ? 'nav-link--active' : ''}`}
                 >
-                  {item.label}
+                  <span className="nav-icon" aria-hidden="true">{item.icon}</span>
+                  <span>{item.label}</span>
+                  {item.badge ? <em>{item.badge}</em> : null}
                 </NavLink>
-              </li>
-            ))}
-          </ul>
+              ))}
+            </div>
+          ))}
         </nav>
-      </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-md py-xl">{children}</main>
-
-      <footer className="border-t border-line">
-        <div className="mx-auto w-full max-w-6xl px-md py-md text-xs text-muted">
-          Darpan runs entirely on generated sample data. No property system is
-          connected.
+        <div className="sidebar-foot">
+          <p><i /> Sample workspace</p>
+          <small>Customer data stays local in this prototype.</small>
         </div>
-      </footer>
+      </aside>
+
+      <div className="app-column">
+        <header className="topbar">
+          <div className="crumbs"><span>Astra House Group</span><b>/</b><strong>{section}</strong></div>
+          <div className="topbar-actions">
+            <span className="date-chip">16 Sep 2026</span>
+            <span className="sample-chip"><i /> Sample + uploads</span>
+            <span className="user-chip" title={`${user.name} · ${user.role}`}>{user.name?.charAt(0) || 'A'}</span>
+            <button type="button" className="signout-button" onClick={onSignOut}>Sign out</button>
+          </div>
+        </header>
+
+        <main className="app-main">{children}</main>
+
+        <footer className="app-footer">
+          <span>Workspace: <strong>Astra House Group</strong></span>
+          <span>Product: <strong>DineAstra by ARQ One AI Labs</strong></span>
+          <span className="secure-note"><i /> Securely connected</span>
+        </footer>
+      </div>
     </div>
   )
 }

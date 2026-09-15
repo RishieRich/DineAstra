@@ -22,9 +22,9 @@ def health() -> dict:
     first, last = repo.property_date_bounds()
     return {
         "status": "ok",
-        "service": "darpan-api",
-        "version": "0.1.0",
-        "mode": "sample data",
+        "service": "dineastra-api",
+        "version": "0.2.0",
+        "mode": "sample + uploads",
         "today": repo.anchor_date().isoformat(),
         "data_window": {"first": first, "last": last},
         "metric_count": len(registry.METRICS),
@@ -49,7 +49,7 @@ def connections(user: dict = Depends(auth.current_user)) -> dict:
         "any_connected": any(
             c["status"] == "connected" for c in repo.connections_all()
         ),
-        "note": "Darpan runs on generated sample data. Nothing is connected.",
+        "note": "DineAstra is using generated sample data and any files loaded through Data Studio.",
     }
 
 

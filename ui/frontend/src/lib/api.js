@@ -59,7 +59,7 @@ async function request(path, { method = 'GET', body, token } = {}) {
     })
   } catch {
     throw new ApiError(
-      'The Darpan API is not answering. Start it with: uvicorn ui.backend.main:app --port 8000',
+      'The DineAstra API is not answering. Start it with: uvicorn ui.backend.main:app --port 8000',
       0,
     )
   }
@@ -68,7 +68,7 @@ async function request(path, { method = 'GET', body, token } = {}) {
   if (!response.ok) {
     const detail =
       (payload && (payload.detail || payload.message)) ||
-      'Something went wrong reading the property data.'
+      'Something went wrong reading the workspace data.'
     throw new ApiError(detail, response.status)
   }
   return payload
@@ -103,6 +103,10 @@ export const api = {
       body: { document_id: documentId },
     }),
   brainUpload: (token, file) => upload('/api/brain/upload', file, token),
+  dataStatus: (token) => request('/api/data/status', { token }),
+  dataUpload: (token, file) => upload('/api/data/upload', file, token),
+  dataQuickEntry: (token, body) =>
+    request('/api/data/quick-entry', { method: 'POST', token, body }),
 }
 
 /** Multipart upload: no JSON content type, the browser sets the boundary. */
@@ -118,7 +122,7 @@ async function upload(path, file, token) {
       body: form,
     })
   } catch {
-    throw new ApiError('The Darpan API is not answering.', 0)
+    throw new ApiError('The DineAstra API is not answering.', 0)
   }
 
   const payload = await response.json().catch(() => null)

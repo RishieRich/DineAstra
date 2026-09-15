@@ -57,7 +57,7 @@ function Proof() {
     <div className="flex flex-col gap-xl">
       <SectionHeading
         eyebrow={`Requisitions · ${data.date_formatted}`}
-        title="Proof"
+        title="Purchasing proof"
         support={`${data.count} requisition lines worth ${data.total_value_formatted} were raised today.`}
       />
 

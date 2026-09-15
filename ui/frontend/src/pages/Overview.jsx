@@ -15,100 +15,107 @@ function Overview() {
   const { data, error, loading } = useResource((token) => api.overview(token))
   const [showDigest, setShowDigest] = useState(false)
 
-  if (loading || error || !data) {
-    return <StatusNote loading={loading} error={error} />
-  }
+  if (loading || error || !data) return <StatusNote loading={loading} error={error} />
+
+  const metricByKey = Object.fromEntries(data.metrics.map((metric) => [metric.key, metric]))
+  const foodCost = metricByKey.food_cost_pct
+  const gop = metricByKey.gop_pct
+  const standards = metricByKey.checklist_signoff_pct
 
   return (
-    <div className="flex flex-col gap-xl">
+    <div className="page-stack">
       <SectionHeading
         eyebrow={`${data.day_of_week} · ${data.date_formatted}`}
-        title="Today at the property"
-        support="Every figure below is computed from the property's own records."
+        title="Command centre"
+        support="One operating view across revenue, margin, events and daily standards."
         action={
-          <button
-            type="button"
-            onClick={() => setShowDigest(true)}
-            className="rounded-sm border border-burgundy px-md py-sm text-sm text-burgundy"
-          >
-            Send to GM
-          </button>
+          <div className="heading-actions">
+            <Link to="/data" className="secondary-button">Load data</Link>
+            <button type="button" onClick={() => setShowDigest(true)} className="primary-button compact-button">GM digest →</button>
+          </div>
         }
       />
 
-      <HeroFigure
-        value={data.hero.value}
-        formatter={formatCompactCurrency}
-        label={data.hero.label}
-        caption={`Exactly ${data.hero.exact_formatted}.`}
-        provenance={data.hero.provenance}
-      />
+      <div className="overview-hero-grid">
+        <HeroFigure
+          value={data.hero.value}
+          formatter={formatCompactCurrency}
+          label="Portfolio revenue · trailing 30 days"
+          caption={`Exact value ${data.hero.exact_formatted}. Includes the latest accepted version of every loaded outlet-day.`}
+          provenance={data.hero.provenance}
+        />
+        <AlertBlock alert={data.alert} />
+      </div>
 
-      <AlertBlock alert={data.alert} />
-
-      <div>
-        <SectionHeading title="The day in figures" />
-        <div className="mt-md grid gap-md sm:grid-cols-2 lg:grid-cols-3">
+      <section>
+        <div className="mini-section-heading">
+          <div><p className="eyebrow">Daily pulse</p><h3>The business in six signals</h3></div>
+          <span>Updated from {data.mode}</span>
+        </div>
+        <div className="metric-grid">
           {data.metrics.map((metric) => (
             <MetricTile
               key={metric.key}
               label={metric.label}
               value={metric.formatted}
-              delta={
-                metric.delta_formatted
-                  ? `${metric.delta_formatted} ${metric.delta_label}`
-                  : null
-              }
+              delta={metric.delta_formatted ? `${metric.delta_formatted} ${metric.delta_label}` : null}
               deltaDirection={metric.delta_direction}
               provenance={metric.provenance}
             />
           ))}
         </div>
-      </div>
+      </section>
 
-      <div>
-        <SectionHeading
-          title="Banquets today"
-          support={`Corporate segment margin is running at ${formatPercent(
-            data.corporate_margin.value,
-          )}.`}
-          action={
-            <Link
-              to="/banquets"
-              className="text-sm text-burgundy underline underline-offset-4"
-            >
-              All events
-            </Link>
-          }
-        />
-        <div className="mt-md">
+      <div className="overview-lower-grid">
+        <section className="surface-card operating-pulse">
+          <div className="card-heading">
+            <div><p className="eyebrow">Operating pulse</p><h3>Margin and standards</h3></div>
+            <Link to="/ask">Ask why →</Link>
+          </div>
+          <div className="pulse-row">
+            <div><span>Food cost</span><strong>{foodCost?.formatted}</strong></div>
+            <div className="pulse-track"><i style={{ width: `${Math.min(foodCost?.value || 0, 100)}%` }} /></div>
+            <small>Target 31.0%</small>
+          </div>
+          <div className="pulse-row pulse-row--positive">
+            <div><span>GOP margin</span><strong>{gop?.formatted}</strong></div>
+            <div className="pulse-track"><i style={{ width: `${Math.min(gop?.value || 0, 100)}%` }} /></div>
+            <small>Current period</small>
+          </div>
+          <div className="pulse-row pulse-row--gold">
+            <div><span>Standards signed off</span><strong>{standards?.formatted}</strong></div>
+            <div className="pulse-track"><i style={{ width: `${Math.min(standards?.value || 0, 100)}%` }} /></div>
+            <small>Daily completion</small>
+          </div>
+        </section>
+
+        <section className="surface-card event-card">
+          <div className="card-heading">
+            <div><p className="eyebrow">Events today</p><h3>Banquet book</h3></div>
+            <Link to="/banquets">All events →</Link>
+          </div>
+          <p className="event-margin-note">Corporate segment margin is {formatPercent(data.corporate_margin.value)}.</p>
           <DataTable
             columns={[
               { key: 'id', header: 'Event', nowrap: true },
               { key: 'name', header: 'Name' },
-              { key: 'segment', header: 'Segment' },
               { key: 'covers', header: 'Covers', align: 'right', nowrap: true },
-              {
-                key: 'revenue_formatted',
-                header: 'Revenue',
-                align: 'right',
-              },
-              {
-                key: 'margin_formatted',
-                header: 'Margin',
-                align: 'right',
-              },
+              { key: 'revenue_formatted', header: 'Revenue', align: 'right' },
+              { key: 'margin_formatted', header: 'Margin', align: 'right' },
             ]}
             rows={data.banquets_today}
             getRowKey={(row) => row.id}
             emptyMessage="No banquet event was held today."
           />
-        </div>
+        </section>
       </div>
 
-      {showDigest ? (
-        <DigestPreview digest={data.digest} onClose={() => setShowDigest(false)} />
-      ) : null}
+      <section className="roadmap-strip">
+        <div><p className="eyebrow eyebrow--gold">Product roadmap</p><h3>Clearly separated from the working prototype</h3></div>
+        <span>Direct POS sync</span><span>Loyalty wallet</span><span>Maintenance SLA</span><span>Menu engineering</span>
+      </section>
+
+      {showDigest ? <DigestPreview digest={data.digest} onClose={() => setShowDigest(false)} /> : null}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-"""Data access for the Darpan demo.
+"""Data access for the DineAstra demo.
 
 Every read of data/ goes through this module. Routes and the metric registry
 never open a file themselves. Files are loaded once and cached in memory;
@@ -51,7 +51,8 @@ def parse_date(value: str | date | None, default: date | None = None) -> date:
 
 
 def anchor_date() -> date:
-    return ANCHOR_DATE
+    rows = daily_property_all()
+    return parse_date(rows[-1]["date"]) if rows else ANCHOR_DATE
 
 
 # ---------------------------------------------------------------------------
@@ -60,7 +61,15 @@ def anchor_date() -> date:
 
 
 def daily_property_all() -> list[dict]:
-    return _load_json("daily_property.json")
+    seeded = list(_load_json("daily_property.json"))
+    from ui.backend import data_import_service
+
+    imported = data_import_service.current_daily_rows()
+    if not imported:
+        return seeded
+    by_date = {row["date"]: row for row in seeded}
+    by_date.update({row["date"]: row for row in imported})
+    return [by_date[key] for key in sorted(by_date)]
 
 
 def daily_property_for(day: str | date) -> dict | None:

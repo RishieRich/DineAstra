@@ -1,25 +1,33 @@
 /*
- * Darpan design tokens.
+ * DineAstra design tokens.
  *
  * Every colour, font, spacing and radius value used anywhere in the
  * frontend must resolve back to a variable defined here. No other file may
- * carry a raw colour literal. The banned effects list -- soft shadows,
- * colour ramps, backdrop blurs, and CSS-forced capitals -- is enforced by
- * grep over src/, so this file names none of them literally either.
+ * carry a raw colour literal.
  */
 
 :root {
   /* Colour */
-  --color-burgundy: #5c1a2e;
-  --color-burgundy-deep: #3d0f1f;
-  --color-gold: #c9a24b;
-  --color-gold-soft: #e4cf9a;
-  --color-ink: #221417;
-  --color-paper: #faf6f0;
-  --color-line: #e4d9cd;
-  --color-muted: #8a7568;
-  --color-positive: #3f6b4a;
-  --color-negative: #9c3b2e;
+  --color-burgundy: #651d37;
+  --color-burgundy-deep: #2b0b1d;
+  --color-burgundy-mid: #43102b;
+  --color-burgundy-soft: #f3e8ed;
+  --color-gold: #d4a846;
+  --color-gold-bright: #f1d88a;
+  --color-gold-soft: #ead9af;
+  --color-ink: #21171b;
+  --color-paper: #fbf8f4;
+  --color-surface: #ffffff;
+  --color-line: #e8ded7;
+  --color-muted: #756970;
+  --color-positive: #22715d;
+  --color-positive-soft: #e5f3ee;
+  --color-negative: #a63e43;
+  --color-negative-soft: #fae9e9;
+  --color-warning: #9a6714;
+  --color-warning-soft: #fff2d8;
+  --color-info: #3f5f88;
+  --color-info-soft: #e8eef7;
 
   /* Type */
   --font-serif: 'Fraunces', Georgia, serif;
@@ -30,10 +38,15 @@
   --space-sm: 0.5rem;
   --space-md: 1rem;
   --space-lg: 1.5rem;
-  --space-xl: 2.5rem;
-  --space-2xl: 4rem;
+  --space-xl: 2rem;
+  --space-2xl: 3.5rem;
 
-  /* Radius -- soft, never zero, never pill */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
+  --radius-sm: 0.45rem;
+  --radius-md: 0.85rem;
+  --radius-lg: 1.25rem;
+
+  /* Elevation */
+  --shadow-soft: 0 14px 34px rgba(43, 11, 29, 0.09);
+  --shadow-card: 0 8px 24px rgba(43, 11, 29, 0.07);
+  --shadow-button: 0 8px 18px rgba(43, 11, 29, 0.2);
 }

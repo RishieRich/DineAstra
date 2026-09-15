@@ -20,7 +20,7 @@ export async function askStream(token, question, handlers, signal) {
   if (!response.ok || !response.body) {
     const payload = await response.json().catch(() => null)
     throw new Error(
-      (payload && payload.detail) || 'Darpan could not reach its own API.',
+      (payload && payload.detail) || 'DineAstra could not reach its own API.',
     )
   }
 

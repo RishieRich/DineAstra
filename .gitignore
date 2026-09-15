@@ -17,6 +17,7 @@ dist/
 
 # runtime data (generated, not committed)
 data/runtime/*.jsonl
+data/runtime/import_history.json
 
 # editor / os
 .DS_Store

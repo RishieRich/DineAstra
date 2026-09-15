@@ -1,4 +1,4 @@
-"""Darpan backend entrypoint.
+"""DineAstra backend entrypoint.
 
 Run from the repo root:
 
@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from agents import narrator
-from ui.backend.routes import ask, banquet, brain, operations, overview, system
+from ui.backend.routes import ask, banquet, brain, data, operations, overview, system
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(messag
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 
-app = FastAPI(title="Darpan API", version="0.1.0")
+app = FastAPI(title="DineAstra API", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -39,6 +39,7 @@ app.include_router(banquet.router)
 app.include_router(operations.router)
 app.include_router(ask.router)
 app.include_router(brain.router)
+app.include_router(data.router)
 
 
 @app.on_event("startup")

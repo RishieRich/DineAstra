@@ -22,43 +22,30 @@ function Ask() {
   const [error, setError] = useState(null)
   const abortRef = useRef(null)
 
-  const submit = useCallback(
-    async (asked) => {
-      const text = (asked ?? '').trim()
-      if (!text || busy) return
+  const submit = useCallback(async (asked) => {
+    const text = (asked ?? '').trim()
+    if (!text || busy) return
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+    setBusy(true)
+    setError(null)
+    setMeta(null)
+    setAnswer('')
+    setDone(null)
+    try {
+      await askStream(token, text, {
+        onMeta: setMeta,
+        onToken: (chunk) => setAnswer((previous) => previous + chunk),
+        onDone: setDone,
+      }, controller.signal)
+    } catch (err) {
+      if (err.name !== 'AbortError') setError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }, [busy, token])
 
-      abortRef.current?.abort()
-      const controller = new AbortController()
-      abortRef.current = controller
-
-      setBusy(true)
-      setError(null)
-      setMeta(null)
-      setAnswer('')
-      setDone(null)
-
-      try {
-        await askStream(
-          token,
-          text,
-          {
-            onMeta: setMeta,
-            onToken: (chunk) => setAnswer((prev) => prev + chunk),
-            onDone: setDone,
-          },
-          controller.signal,
-        )
-      } catch (err) {
-        if (err.name !== 'AbortError') setError(err.message)
-      } finally {
-        setBusy(false)
-      }
-    },
-    [busy, token],
-  )
-
-  // The Overview alert routes here with its question already written, and
-  // asks it without a second click.
   useEffect(() => {
     const carried = location.state?.question
     if (carried) {
@@ -76,139 +63,94 @@ function Ask() {
   }
 
   return (
-    <div className="flex flex-col gap-lg">
+    <div className="page-stack ask-page">
       <SectionHeading
-        eyebrow="Ask"
-        title="Ask the property a question"
-        support="Every figure in an answer is computed first and checked afterwards."
+        eyebrow="Ask DineAstra"
+        title="Talk to the data you have loaded"
+        support="The answer layer uses computed figures, policy context and the latest accepted record version."
+        action={<span className="status-chip status-chip--live"><i /> Guarded answers</span>}
       />
 
-      <form
-        onSubmit={(event) => {
-          event.preventDefault()
-          submit(question)
-        }}
-        className="flex flex-col gap-md"
-      >
-        <label htmlFor="question" className="text-sm text-muted">
-          Your question
-        </label>
-        <textarea
-          id="question"
-          rows={3}
-          value={question}
-          onChange={(event) => setQuestion(event.target.value)}
-          placeholder="Ask about occupancy, rate, cost, a banquet event, or a requisition."
-          className="w-full rounded-sm border border-line bg-paper p-md text-ink"
-        />
-        <div>
-          <button
-            type="submit"
-            disabled={busy || !question.trim()}
-            className={`rounded-sm border px-md py-sm text-sm ${
-              busy || !question.trim()
-                ? 'border-line text-muted'
-                : 'border-burgundy bg-burgundy text-gold'
-            }`}
-          >
-            {busy ? 'Working' : 'Ask'}
-          </button>
-        </div>
-      </form>
+      <section className={`ask-workspace ${answer || error ? 'ask-workspace--answered' : ''}`}>
+        {!answer && !error ? (
+          <div className="ask-empty">
+            <span className="ask-spark" aria-hidden="true">✦</span>
+            <h3>What would you like to understand?</h3>
+            <p>Ask about revenue, food cost, events, standards or an operating exception.</p>
+            <div className="ask-suggestions">
+              {SUGGESTION_CHIPS.map((chip) => (
+                <button key={chip} type="button" onClick={() => askChip(chip)}>{chip}</button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
-      <div>
-        <p className="text-xs tracking-[0.14em] text-muted">Try one of these</p>
-        <div className="mt-sm flex flex-wrap gap-sm">
-          {SUGGESTION_CHIPS.map((chip) => (
-            <button
-              key={chip}
-              type="button"
-              onClick={() => askChip(chip)}
-              className="rounded-sm border border-line px-md py-xs text-left text-sm text-ink"
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
-      </div>
+        {error ? (
+          <div className="ask-answer ask-answer--error" role="alert">
+            <p className="eyebrow">Could not answer</p>
+            <h3>That question did not go through.</h3>
+            <p>{error}</p>
+          </div>
+        ) : null}
 
-      {error ? (
-        <div className="rounded-md border border-line p-lg" role="alert">
-          <p className="font-serif text-2xl text-ink">That did not go through.</p>
-          <p className="mt-sm text-sm text-muted">{error}</p>
-        </div>
-      ) : null}
+        {meta || answer ? (
+          <div className="ask-answer">
+            <div className="ask-answer__question"><span>You asked</span><strong>{question}</strong></div>
+            <div className="ask-answer__body">
+              <span className="ask-spark" aria-hidden="true">✦</span>
+              <p>{answer}{busy ? <span className="typing-dot"> …</span> : null}</p>
+            </div>
 
-      {meta || answer ? (
-        <div className="rounded-md border border-line p-lg">
-          <p className="whitespace-pre-wrap text-base leading-relaxed text-ink">
-            {answer}
-            {busy ? <span className="text-muted"> ...</span> : null}
-          </p>
+            {meta?.figures && Object.keys(meta.figures).length > 0 ? (
+              <div className="answer-evidence">
+                <p className="eyebrow">Figures used</p>
+                <dl>
+                  {Object.entries(meta.figures).map(([key, value]) => (
+                    <div key={key}><dt>{key.replace(/_/g, ' ')}</dt><dd>{value}</dd></div>
+                  ))}
+                </dl>
+              </div>
+            ) : null}
 
-          {meta?.figures && Object.keys(meta.figures).length > 0 ? (
-            <div className="mt-lg border-t border-line pt-md">
-              <p className="text-xs tracking-[0.14em] text-muted">
-                Figures behind this answer
-              </p>
-              <dl className="mt-sm grid gap-x-lg gap-y-xs sm:grid-cols-2">
-                {Object.entries(meta.figures).map(([key, value]) => (
-                  <div key={key} className="flex justify-between gap-md text-sm">
-                    <dt className="text-muted">{key.replace(/_/g, ' ')}</dt>
-                    <dd className="text-ink">{value}</dd>
-                  </div>
+            {meta?.citations?.length ? (
+              <div className="answer-citations">
+                <p className="eyebrow">Policy context</p>
+                {meta.citations.map((citation) => (
+                  <blockquote key={`${citation.document_id}-${citation.heading_number}`}>
+                    {citation.quote}
+                    <footer>{citation.document_title}, section {citation.heading}{citation.last_verified ? ` · verified ${citation.last_verified}` : ''}</footer>
+                  </blockquote>
                 ))}
-              </dl>
-            </div>
-          ) : null}
+              </div>
+            ) : null}
 
-          {meta?.citations?.length ? (
-            <div className="mt-md border-t border-line pt-md">
-              <p className="text-xs tracking-[0.14em] text-muted">Cited</p>
-              {meta.citations.map((citation) => (
-                <blockquote
-                  key={`${citation.document_id}-${citation.heading_number}`}
-                  className="mt-sm border-l-2 border-gold pl-md text-sm text-muted"
-                >
-                  {citation.quote}
-                  <footer className="mt-xs text-xs text-muted">
-                    {citation.document_title}, section {citation.heading}
-                    {citation.last_verified
-                      ? ` · last verified ${citation.last_verified}`
-                      : ''}
-                  </footer>
-                </blockquote>
-              ))}
-            </div>
-          ) : null}
+            {meta?.provenance?.length ? (
+              <div className="answer-provenance">
+                {meta.provenance.map((entry, index) => <ProvenanceLine key={`${entry.source}-${index}`} provenance={entry} />)}
+              </div>
+            ) : null}
 
-          {meta?.provenance?.length ? (
-            <div className="mt-md border-t border-line pt-md">
-              {meta.provenance.map((entry, index) => (
-                <ProvenanceLine
-                  key={`${entry.source}-${index}`}
-                  provenance={entry}
-                  className="mt-xs"
-                />
-              ))}
-            </div>
-          ) : null}
+            {done ? (
+              <p className="answer-guard">
+                {meta?.mode === 'mock' ? `Sample-mode wording · ${meta.provider}` : `${meta?.provider} · ${meta?.model}`}
+                {done.guard?.verdict ? ` · Number check ${done.guard.verdict}` : ''}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
-          {done ? (
-            <p className="mt-md border-t border-line pt-md text-xs text-muted">
-              {meta?.mode === 'mock'
-                ? `Answered in sample mode by ${meta.provider}. The figures are computed; the wording is fixed.`
-                : `Answered by ${meta?.provider} (${meta?.model}).`}
-              {done.guard?.verdict
-                ? ` Number check: ${done.guard.verdict}.`
-                : ''}
-              {done.served === 'template' && meta?.mode !== 'mock'
-                ? ' The model answer was not used; the checked template was served instead.'
-                : ''}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+        <form className="ask-composer" onSubmit={(event) => { event.preventDefault(); submit(question) }}>
+          <label htmlFor="question" className="sr-only">Ask about your operations</label>
+          <input
+            id="question"
+            value={question}
+            onChange={(event) => setQuestion(event.target.value)}
+            placeholder="Ask about sales, food cost, events or standards…"
+          />
+          <button type="submit" disabled={busy || !question.trim()} aria-label="Send question">→</button>
+        </form>
+        <p className="ask-privacy">Latest accepted facts are aggregated before an answer is generated. Row-by-row customer data is not sent in sample mode.</p>
+      </section>
     </div>
   )
 }

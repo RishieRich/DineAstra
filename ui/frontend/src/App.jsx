@@ -6,6 +6,7 @@ import Banquets from './pages/Banquets'
 import BanquetDetail from './pages/BanquetDetail'
 import Brain from './pages/Brain'
 import Connections from './pages/Connections'
+import DataStudio from './pages/DataStudio'
 import Login from './pages/Login'
 import Overview from './pages/Overview'
 import Proof from './pages/Proof'
@@ -68,6 +69,14 @@ function Routing() {
         element={
           <SignedIn>
             <Ask />
+          </SignedIn>
+        }
+      />
+      <Route
+        path="/data"
+        element={
+          <SignedIn>
+            <DataStudio />
           </SignedIn>
         }
       />
