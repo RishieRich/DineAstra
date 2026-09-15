@@ -344,6 +344,8 @@ ITEM_CATALOG = [
     ("Bath Towel (set of 5)", "Housekeeping", "Comfort Line Supplies", 1650, 10),
 ]
 
+CONTRAST_ITEM = "Basmati Rice 1kg"
+
 SUBMISSIONS_START = date(2026, 9, 5)
 SUBMISSIONS_DAYS = 10
 SUBMISSIONS_PER_DAY = 20
@@ -362,11 +364,19 @@ def build_submissions() -> list[dict]:
         d = SUBMISSIONS_START + timedelta(days=day_index)
         is_anchor_day = d == ANCHOR_DATE
 
+        # On the anchor day the filler rows skip the contrast-pair item, so
+        # that day carries exactly two rows for it: the planted pair. Any
+        # third row would make the "cheapest same-item line" ambiguous and
+        # the detected pair would no longer be the one the demo narrates.
+        catalog = (
+            [row for row in ITEM_CATALOG if row[0] != CONTRAST_ITEM]
+            if is_anchor_day
+            else ITEM_CATALOG
+        )
+
         day_rows = []
         for slot in range(SUBMISSIONS_PER_DAY):
-            item, dept, vendor, base_cost, base_qty = ITEM_CATALOG[
-                slot % len(ITEM_CATALOG)
-            ]
+            item, dept, vendor, base_cost, base_qty = catalog[slot % len(catalog)]
             qty = base_qty + rng.randint(-3, 3)
             qty = max(1, qty)
             unit_cost = round(base_cost * (1 + rng.uniform(-0.04, 0.04)))
@@ -415,8 +425,20 @@ def build_submissions() -> list[dict]:
     assert "SUB-004182" in by_id and "SUB-004183" in by_id, (
         "contrast pair IDs drifted -- adjust SUBMISSIONS_* constants"
     )
-    assert by_id["SUB-004182"]["item"] == by_id["SUB-004183"]["item"] == "Basmati Rice 1kg"
+    assert by_id["SUB-004182"]["item"] == by_id["SUB-004183"]["item"] == CONTRAST_ITEM
     assert by_id["SUB-004182"]["date"] == ANCHOR_DATE.isoformat()
+
+    # The pair must be the only rows for that item on that day, so the
+    # variance rule in expense-policy.md 4.1 lands on exactly these two.
+    anchor_item_rows = [
+        r
+        for r in rows
+        if r["date"] == ANCHOR_DATE.isoformat() and r["item"] == CONTRAST_ITEM
+    ]
+    assert {r["id"] for r in anchor_item_rows} == {"SUB-004182", "SUB-004183"}, (
+        f"expected exactly the planted pair for {CONTRAST_ITEM}, got "
+        f"{[r['id'] for r in anchor_item_rows]}"
+    )
 
     return rows
 

@@ -31,11 +31,13 @@ records the reason in the settlement pack.
 
 ### 3.1 Segment floors
 
-Corporate and MICE events carry a margin floor of sixty per cent. Wedding and
-social events carry a margin floor of fifty-two per cent, reflecting their
-higher decor and labour load. An event quoted below its segment floor
-requires the General Manager's written approval before the contract is
-issued.
+Each segment carries its own margin floor, set against what that segment
+actually earns at this property rather than against a single house number:
+corporate sixty per cent, MICE forty-eight per cent, wedding forty-two per
+cent, social forty per cent. Weddings and social events sit lower by design,
+reflecting their higher decor and labour load. An event quoted below its
+segment floor requires the General Manager's written approval before the
+contract is issued.
 
 ### 3.2 Menu engineering
 

@@ -1802,12 +1802,12 @@
   {
     "id": "SUB-004181",
     "date": "2026-09-14",
-    "item": "Basmati Rice 1kg",
+    "item": "Fresh Paneer 1kg",
     "department": "Kitchen & Stewarding",
-    "vendor": "Anand Grain Traders",
-    "unit_cost": 56,
-    "quantity": 43,
-    "total_cost": 2408
+    "vendor": "Himalayan Dairy Co",
+    "unit_cost": 308,
+    "quantity": 21,
+    "total_cost": 6468
   },
   {
     "id": "SUB-004182",
@@ -1832,171 +1832,171 @@
   {
     "id": "SUB-004184",
     "date": "2026-09-14",
-    "item": "Table Linen (set of 10)",
-    "department": "Banquets & Events",
-    "vendor": "Weavers Guild Textiles",
-    "unit_cost": 1501,
-    "quantity": 3,
-    "total_cost": 4503
+    "item": "LPG Cylinder 19kg",
+    "department": "Kitchen & Stewarding",
+    "vendor": "Bharat Gas Distributors",
+    "unit_cost": 1915,
+    "quantity": 1,
+    "total_cost": 1915
   },
   {
     "id": "SUB-004185",
     "date": "2026-09-14",
-    "item": "LPG Cylinder 19kg",
-    "department": "Kitchen & Stewarding",
-    "vendor": "Bharat Gas Distributors",
-    "unit_cost": 1910,
-    "quantity": 1,
-    "total_cost": 1910
+    "item": "Housekeeping Amenity Kit",
+    "department": "Housekeeping",
+    "vendor": "Comfort Line Supplies",
+    "unit_cost": 98,
+    "quantity": 117,
+    "total_cost": 11466
   },
   {
     "id": "SUB-004186",
     "date": "2026-09-14",
-    "item": "Housekeeping Amenity Kit",
-    "department": "Housekeeping",
-    "vendor": "Comfort Line Supplies",
-    "unit_cost": 99,
-    "quantity": 122,
-    "total_cost": 12078
+    "item": "Printer Toner Cartridge",
+    "department": "Front Office",
+    "vendor": "OfficeMax Traders",
+    "unit_cost": 2492,
+    "quantity": 5,
+    "total_cost": 12460
   },
   {
     "id": "SUB-004187",
     "date": "2026-09-14",
-    "item": "Printer Toner Cartridge",
-    "department": "Front Office",
-    "vendor": "OfficeMax Traders",
-    "unit_cost": 2406,
-    "quantity": 5,
-    "total_cost": 12030
+    "item": "Fresh Cut Flowers (bunch)",
+    "department": "Banquets & Events",
+    "vendor": "Bloom & Petal Florists",
+    "unit_cost": 381,
+    "quantity": 27,
+    "total_cost": 10287
   },
   {
     "id": "SUB-004188",
     "date": "2026-09-14",
-    "item": "Fresh Cut Flowers (bunch)",
-    "department": "Banquets & Events",
-    "vendor": "Bloom & Petal Florists",
-    "unit_cost": 378,
-    "quantity": 27,
-    "total_cost": 10206
+    "item": "Mineral Water Case (24x1L)",
+    "department": "F&B Service",
+    "vendor": "Himalayan Springs Ltd",
+    "unit_cost": 338,
+    "quantity": 32,
+    "total_cost": 10816
   },
   {
     "id": "SUB-004189",
     "date": "2026-09-14",
-    "item": "Mineral Water Case (24x1L)",
-    "department": "F&B Service",
-    "vendor": "Himalayan Springs Ltd",
-    "unit_cost": 340,
-    "quantity": 33,
-    "total_cost": 11220
+    "item": "Bath Towel (set of 5)",
+    "department": "Housekeeping",
+    "vendor": "Comfort Line Supplies",
+    "unit_cost": 1651,
+    "quantity": 13,
+    "total_cost": 21463
   },
   {
     "id": "SUB-004190",
     "date": "2026-09-14",
-    "item": "Bath Towel (set of 5)",
-    "department": "Housekeeping",
-    "vendor": "Comfort Line Supplies",
-    "unit_cost": 1685,
-    "quantity": 9,
-    "total_cost": 15165
+    "item": "Fresh Paneer 1kg",
+    "department": "Kitchen & Stewarding",
+    "vendor": "Himalayan Dairy Co",
+    "unit_cost": 327,
+    "quantity": 17,
+    "total_cost": 5559
   },
   {
     "id": "SUB-004191",
     "date": "2026-09-14",
-    "item": "Basmati Rice 1kg",
+    "item": "Chicken Breast 1kg",
     "department": "Kitchen & Stewarding",
-    "vendor": "Anand Grain Traders",
-    "unit_cost": 60,
-    "quantity": 38,
-    "total_cost": 2280
+    "vendor": "Coastal Poultry Supply",
+    "unit_cost": 246,
+    "quantity": 33,
+    "total_cost": 8118
   },
   {
     "id": "SUB-004192",
     "date": "2026-09-14",
-    "item": "Fresh Paneer 1kg",
-    "department": "Kitchen & Stewarding",
-    "vendor": "Himalayan Dairy Co",
-    "unit_cost": 317,
-    "quantity": 21,
-    "total_cost": 6657
+    "item": "Table Linen (set of 10)",
+    "department": "Banquets & Events",
+    "vendor": "Weavers Guild Textiles",
+    "unit_cost": 1436,
+    "quantity": 9,
+    "total_cost": 12924
   },
   {
     "id": "SUB-004193",
     "date": "2026-09-14",
-    "item": "Chicken Breast 1kg",
+    "item": "LPG Cylinder 19kg",
     "department": "Kitchen & Stewarding",
-    "vendor": "Coastal Poultry Supply",
-    "unit_cost": 231,
-    "quantity": 32,
-    "total_cost": 7392
+    "vendor": "Bharat Gas Distributors",
+    "unit_cost": 1783,
+    "quantity": 1,
+    "total_cost": 1783
   },
   {
     "id": "SUB-004194",
     "date": "2026-09-14",
-    "item": "Table Linen (set of 10)",
-    "department": "Banquets & Events",
-    "vendor": "Weavers Guild Textiles",
-    "unit_cost": 1431,
-    "quantity": 3,
-    "total_cost": 4293
+    "item": "Housekeeping Amenity Kit",
+    "department": "Housekeeping",
+    "vendor": "Comfort Line Supplies",
+    "unit_cost": 94,
+    "quantity": 117,
+    "total_cost": 10998
   },
   {
     "id": "SUB-004195",
     "date": "2026-09-14",
-    "item": "LPG Cylinder 19kg",
-    "department": "Kitchen & Stewarding",
-    "vendor": "Bharat Gas Distributors",
-    "unit_cost": 1871,
+    "item": "Printer Toner Cartridge",
+    "department": "Front Office",
+    "vendor": "OfficeMax Traders",
+    "unit_cost": 2428,
     "quantity": 1,
-    "total_cost": 1871
+    "total_cost": 2428
   },
   {
     "id": "SUB-004196",
     "date": "2026-09-14",
-    "item": "Housekeeping Amenity Kit",
-    "department": "Housekeeping",
-    "vendor": "Comfort Line Supplies",
-    "unit_cost": 97,
-    "quantity": 121,
-    "total_cost": 11737
+    "item": "Fresh Cut Flowers (bunch)",
+    "department": "Banquets & Events",
+    "vendor": "Bloom & Petal Florists",
+    "unit_cost": 389,
+    "quantity": 26,
+    "total_cost": 10114
   },
   {
     "id": "SUB-004197",
     "date": "2026-09-14",
-    "item": "Printer Toner Cartridge",
-    "department": "Front Office",
-    "vendor": "OfficeMax Traders",
-    "unit_cost": 2486,
-    "quantity": 5,
-    "total_cost": 12430
+    "item": "Mineral Water Case (24x1L)",
+    "department": "F&B Service",
+    "vendor": "Himalayan Springs Ltd",
+    "unit_cost": 352,
+    "quantity": 32,
+    "total_cost": 11264
   },
   {
     "id": "SUB-004198",
     "date": "2026-09-14",
-    "item": "Fresh Cut Flowers (bunch)",
-    "department": "Banquets & Events",
-    "vendor": "Bloom & Petal Florists",
-    "unit_cost": 385,
-    "quantity": 25,
-    "total_cost": 9625
+    "item": "Bath Towel (set of 5)",
+    "department": "Housekeeping",
+    "vendor": "Comfort Line Supplies",
+    "unit_cost": 1673,
+    "quantity": 10,
+    "total_cost": 16730
   },
   {
     "id": "SUB-004199",
     "date": "2026-09-14",
-    "item": "Mineral Water Case (24x1L)",
-    "department": "F&B Service",
-    "vendor": "Himalayan Springs Ltd",
-    "unit_cost": 344,
-    "quantity": 28,
-    "total_cost": 9632
+    "item": "Fresh Paneer 1kg",
+    "department": "Kitchen & Stewarding",
+    "vendor": "Himalayan Dairy Co",
+    "unit_cost": 324,
+    "quantity": 16,
+    "total_cost": 5184
   },
   {
     "id": "SUB-004200",
     "date": "2026-09-14",
-    "item": "Bath Towel (set of 5)",
-    "department": "Housekeeping",
-    "vendor": "Comfort Line Supplies",
-    "unit_cost": 1649,
-    "quantity": 12,
-    "total_cost": 19788
+    "item": "Chicken Breast 1kg",
+    "department": "Kitchen & Stewarding",
+    "vendor": "Coastal Poultry Supply",
+    "unit_cost": 240,
+    "quantity": 37,
+    "total_cost": 8880
   }
 ]

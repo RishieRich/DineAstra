@@ -10,6 +10,8 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from ui.backend.routes import banquet, operations, overview, system
+
 app = FastAPI(title="Darpan API", version="0.1.0")
 
 app.add_middleware(
@@ -20,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.get("/api/health")
-def health() -> dict:
-    return {"status": "ok", "service": "darpan-api", "version": "0.1.0"}
+app.include_router(system.router)
+app.include_router(overview.router)
+app.include_router(banquet.router)
+app.include_router(operations.router)
