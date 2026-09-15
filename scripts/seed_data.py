@@ -33,6 +33,10 @@ START_DATE = ANCHOR_DATE - timedelta(days=WINDOW_DAYS - 1)
 FOOD_COST_STEP_DATE = date(2026, 8, 16)
 
 ROOMS_AVAILABLE = 180
+# brand-standard.md section 4.2 sets 34 daily tasks across 6 departments, and
+# section 5 measures compliance as the share signed off. Target 100%, owner
+# reporting threshold 95%.
+CHECKLIST_TASK_TOTAL = 34
 SEED = 20260914  # fixed seed -> deterministic across runs
 
 
@@ -91,6 +95,16 @@ def build_daily_property() -> list[dict]:
         gop_amount = total_revenue - total_cost
         gop_pct = _round1(gop_amount / total_revenue * 100)
 
+        # Sign-off runs high but rarely perfect; busier weekdays slip slightly
+        # more often than quiet weekend days.
+        misses = rng.choices(
+            [0, 1, 2, 3], weights=[52, 30, 13, 5] if is_weekday_heavy else [64, 24, 9, 3]
+        )[0]
+        tasks_signed_off = CHECKLIST_TASK_TOTAL - misses
+        checklist_signoff_pct = _round1(
+            tasks_signed_off / CHECKLIST_TASK_TOTAL * 100
+        )
+
         rows.append(
             {
                 "date": d.isoformat(),
@@ -111,6 +125,9 @@ def build_daily_property() -> list[dict]:
                 "other_cost_amount": other_cost_amount,
                 "gop_amount": gop_amount,
                 "gop_pct": gop_pct,
+                "checklist_tasks_total": CHECKLIST_TASK_TOTAL,
+                "checklist_tasks_signed_off": tasks_signed_off,
+                "checklist_signoff_pct": checklist_signoff_pct,
             }
         )
 

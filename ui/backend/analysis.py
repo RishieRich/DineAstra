@@ -34,12 +34,30 @@ def document_section(doc_id: str, heading_number: str) -> dict | None:
         return None
 
     lines = text.splitlines()
+
+    def _body(start_index: int, end_index: int) -> dict:
+        """The section body, plus the 1-based source line its text begins on.
+
+        The body is stripped for display, which drops leading blank lines; a
+        caller mapping a task back to its source line needs to know how many.
+        """
+        raw = lines[start_index:end_index]
+        leading = 0
+        for line in raw:
+            if line.strip():
+                break
+            leading += 1
+        return {
+            "text": "\n".join(raw).strip(),
+            "text_line_start": start_index + leading + 1,
+        }
+
     start = None
     heading = None
     level = None
 
     for index, line in enumerate(lines):
-        match = re.match(r"^(#{2,4})\s+(\d+(?:\.\d+)*)\s+(.*)$", line)
+        match = re.match(r"^(#{2,4})\s+(\d+(?:\.\d+)*)\.?\s+(.*)$", line)
         if not match:
             continue
         hashes, number, title = match.groups()

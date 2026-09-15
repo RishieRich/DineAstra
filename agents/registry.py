@@ -38,6 +38,8 @@ CORPORATE_MARGIN_FLOOR_PCT = SEGMENT_MARGIN_FLOORS["corporate"]
 def segment_margin_floor(segment: str) -> float:
     return SEGMENT_MARGIN_FLOORS.get(segment, 50.0)
 BANQUET_PEER_REVIEW_PTS = 5.0  # banquet-policy.md 4.2
+CHECKLIST_TARGET_PCT = 100.0  # brand-standard.md 5
+CHECKLIST_OWNER_THRESHOLD_PCT = 95.0  # brand-standard.md 5
 
 WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday")
 WEEKEND = ("Friday", "Saturday", "Sunday")
@@ -391,6 +393,45 @@ def _segment_margin_metric(segment: str, label: str, key: str):
     return compute
 
 
+def _compute_checklist_signoff(ctx: MetricContext) -> MetricResult:
+    """Brand-standard compliance: the share of section 4.2's daily tasks
+    signed off in the daily log. brand-standard.md 5 sets the 100% target and
+    the 95% owner reporting threshold."""
+    row = repo.daily_property_for(ctx.day)
+    if row is None:
+        return _missing("checklist_signoff_pct", "Brand standard sign-off", "percent", ctx)
+
+    value = row["checklist_signoff_pct"]
+    delta = round(value - CHECKLIST_TARGET_PCT, 1)
+    return MetricResult(
+        key="checklist_signoff_pct",
+        label="Brand standard sign-off",
+        value=value,
+        formatted=fmt.format_percent(value),
+        unit="percent",
+        provenance=Provenance(
+            source="daily_property.json",
+            window=fmt.format_date_long(ctx.day_iso),
+            note=(
+                f"{row['checklist_tasks_signed_off']} of "
+                f"{row['checklist_tasks_total']} daily tasks in brand-standard.md 4.2"
+            ),
+        ),
+        delta=delta,
+        delta_formatted=fmt.format_points(delta),
+        delta_direction=_direction(delta, higher_is_better=True),
+        delta_label="against the 100% target",
+        context={
+            "tasks_total": row["checklist_tasks_total"],
+            "tasks_signed_off": row["checklist_tasks_signed_off"],
+            "tasks_missed": row["checklist_tasks_total"] - row["checklist_tasks_signed_off"],
+            "target_pct": CHECKLIST_TARGET_PCT,
+            "owner_threshold_pct": CHECKLIST_OWNER_THRESHOLD_PCT,
+            "below_owner_threshold": value < CHECKLIST_OWNER_THRESHOLD_PCT,
+        },
+    )
+
+
 def _compute_requisition_variance_count(ctx: MetricContext) -> MetricResult:
     from ui.backend import analysis  # local import: analysis imports formatting
 
@@ -462,9 +503,9 @@ _register(Metric("banquet_avg_margin_pct", "Banquet margin, all segments", "perc
 _register(Metric("corporate_avg_margin_pct", "Corporate banquet margin", "percent",
                  "Peer average margin across corporate events.",
                  _segment_margin_metric("corporate", "Corporate banquet margin", "corporate_avg_margin_pct")))
-_register(Metric("wedding_avg_margin_pct", "Wedding banquet margin", "percent",
-                 "Peer average margin across wedding events.",
-                 _segment_margin_metric("wedding", "Wedding banquet margin", "wedding_avg_margin_pct")))
+_register(Metric("checklist_signoff_pct", "Brand standard sign-off", "percent",
+                 "Share of the 34 daily tasks signed off in the daily log.",
+                 _compute_checklist_signoff))
 _register(Metric("requisition_variance_count", "Requisitions held for variance review", "count",
                  "Same-item requisition pairs above the 40% variance rule.", _compute_requisition_variance_count))
 

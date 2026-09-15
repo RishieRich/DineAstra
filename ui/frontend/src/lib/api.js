@@ -88,4 +88,45 @@ export const api = {
     request(`/api/operations/submissions${date ? `?date=${date}` : ''}`, { token }),
   connections: (token) => request('/api/system/connections', { token }),
   metrics: (token) => request('/api/system/metrics', { token }),
+  brainDocuments: (token) => request('/api/brain/documents', { token }),
+  brainDocument: (token, docId) => request(`/api/brain/documents/${docId}`, { token }),
+  brainAsk: (token, question, documentId) =>
+    request('/api/brain/ask', {
+      method: 'POST',
+      token,
+      body: { question, document_id: documentId ?? null },
+    }),
+  brainChecklist: (token, documentId) =>
+    request('/api/brain/generate-checklist', {
+      method: 'POST',
+      token,
+      body: { document_id: documentId },
+    }),
+  brainUpload: (token, file) => upload('/api/brain/upload', file, token),
+}
+
+/** Multipart upload: no JSON content type, the browser sets the boundary. */
+async function upload(path, file, token) {
+  const form = new FormData()
+  form.append('file', file)
+
+  let response
+  try {
+    response = await fetch(path, {
+      method: 'POST',
+      headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+      body: form,
+    })
+  } catch {
+    throw new ApiError('The Darpan API is not answering.', 0)
+  }
+
+  const payload = await response.json().catch(() => null)
+  if (!response.ok) {
+    throw new ApiError(
+      (payload && payload.detail) || 'That file was not accepted.',
+      response.status,
+    )
+  }
+  return payload
 }
