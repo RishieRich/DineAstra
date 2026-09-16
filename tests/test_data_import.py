@@ -13,8 +13,7 @@ def _csv(sales: int = 214600) -> bytes:
     ).encode()
 
 
-def test_csv_upload_builds_a_current_daily_record(tmp_path, monkeypatch):
-    monkeypatch.setattr(service, "HISTORY_PATH", tmp_path / "history.json")
+def test_csv_upload_builds_a_current_daily_record():
     rows = service.parse_upload("daily.csv", _csv()).records
     result = service.ingest(rows, "daily.csv", "owner@example.com")
 
@@ -34,9 +33,8 @@ def test_csv_upload_builds_a_current_daily_record(tmp_path, monkeypatch):
     assert "sales_per_seat" not in daily
 
 
-def test_overlay_on_a_seeded_day_keeps_the_estate_facts(tmp_path, monkeypatch):
+def test_overlay_on_a_seeded_day_keeps_the_estate_facts():
     """An upload restates the day's trade; the seat count is not the day's."""
-    monkeypatch.setattr(service, "HISTORY_PATH", tmp_path / "history.json")
     service.ingest(service.parse_upload("daily.csv", _csv()).records, "daily.csv", "owner@example.com")
     seeded = {
         "date": "2026-09-16",
@@ -57,9 +55,8 @@ def test_overlay_on_a_seeded_day_keeps_the_estate_facts(tmp_path, monkeypatch):
     assert row["total_revenue"] == 262800
 
 
-def test_overlay_without_a_seeded_day_reports_per_seat_as_unknown(tmp_path, monkeypatch):
+def test_overlay_without_a_seeded_day_reports_per_seat_as_unknown():
     """A brand new date has no seat count, and says so rather than showing zero."""
-    monkeypatch.setattr(service, "HISTORY_PATH", tmp_path / "history.json")
     service.ingest(service.parse_upload("daily.csv", _csv()).records, "daily.csv", "owner@example.com")
     row = service.overlay_daily_row(None, service.current_daily_rows()[0])
 
@@ -71,8 +68,7 @@ def test_overlay_without_a_seeded_day_reports_per_seat_as_unknown(tmp_path, monk
     assert row["checklist_signoff_pct"] == 97.1
 
 
-def test_changed_business_key_keeps_type_2_history(tmp_path, monkeypatch):
-    monkeypatch.setattr(service, "HISTORY_PATH", tmp_path / "history.json")
+def test_changed_business_key_keeps_type_2_history():
     service.ingest(service.parse_upload("first.csv", _csv()).records, "first.csv", "owner@example.com")
     result = service.ingest(
         service.parse_upload("revision.csv", _csv(sales=228000)).records,
@@ -88,8 +84,7 @@ def test_changed_business_key_keeps_type_2_history(tmp_path, monkeypatch):
     assert history[1]["version"] == 2
 
 
-def test_unchanged_upload_is_idempotent(tmp_path, monkeypatch):
-    monkeypatch.setattr(service, "HISTORY_PATH", tmp_path / "history.json")
+def test_unchanged_upload_is_idempotent():
     rows = service.parse_upload("daily.csv", _csv()).records
     service.ingest(rows, "daily.csv", "owner@example.com")
     result = service.ingest(rows, "daily.csv", "owner@example.com")
@@ -109,8 +104,7 @@ def _mixed_csv() -> bytes:
     ).encode()
 
 
-def test_a_bad_row_is_rejected_without_losing_the_good_rows(tmp_path, monkeypatch):
-    monkeypatch.setattr(service, "HISTORY_PATH", tmp_path / "history.json")
+def test_a_bad_row_is_rejected_without_losing_the_good_rows():
     parsed = service.parse_upload("mixed.csv", _mixed_csv())
 
     assert len(parsed.records) == 1
@@ -122,8 +116,7 @@ def test_a_bad_row_is_rejected_without_losing_the_good_rows(tmp_path, monkeypatc
     assert result["created"] == 1
 
 
-def test_reject_report_keeps_the_original_values_for_correction(tmp_path, monkeypatch):
-    monkeypatch.setattr(service, "HISTORY_PATH", tmp_path / "history.json")
+def test_reject_report_keeps_the_original_values_for_correction():
     parsed = service.parse_upload("mixed.csv", _mixed_csv())
     report = service.reject_report_csv(parsed.rejects)
 
@@ -135,8 +128,7 @@ def test_reject_report_keeps_the_original_values_for_correction(tmp_path, monkey
     assert "not-a-number" in report
 
 
-def test_a_file_where_every_row_fails_still_reports_rather_than_raises(tmp_path, monkeypatch):
-    monkeypatch.setattr(service, "HISTORY_PATH", tmp_path / "history.json")
+def test_a_file_where_every_row_fails_still_reports_rather_than_raises():
     every_row_bad = (
         "date,outlet,dine_in_sales,covers,food_cost_pct,labour_cost_pct,"
         "checklist_total,checklist_signed_off\n"
@@ -148,9 +140,7 @@ def test_a_file_where_every_row_fails_still_reports_rather_than_raises(tmp_path,
     assert len(parsed.rejects) == 1
 
 
-def test_reset_refuses_without_the_confirmation_phrase(tmp_path, monkeypatch):
-    monkeypatch.setattr(service, "HISTORY_PATH", tmp_path / "history.json")
-    monkeypatch.setattr(service, "REJECT_DIR", tmp_path / "reject_reports")
+def test_reset_refuses_without_the_confirmation_phrase():
     service.ingest(service.parse_upload("daily.csv", _csv()).records, "daily.csv", "owner@example.com")
 
     for wrong in ("", "reset", "yes", "RESET please"):
@@ -165,9 +155,7 @@ def test_reset_refuses_without_the_confirmation_phrase(tmp_path, monkeypatch):
     assert len(service.current_records()) == 1
 
 
-def test_reset_discards_uploads_and_returns_to_sample_data(tmp_path, monkeypatch):
-    monkeypatch.setattr(service, "HISTORY_PATH", tmp_path / "history.json")
-    monkeypatch.setattr(service, "REJECT_DIR", tmp_path / "reject_reports")
+def test_reset_discards_uploads_and_returns_to_sample_data():
     parsed = service.parse_upload("mixed.csv", _mixed_csv())
     result = service.ingest(parsed.records, "mixed.csv", "owner@example.com")
     service.store_reject_report(result["batch_id"], parsed.rejects)
@@ -190,24 +178,13 @@ def test_a_cost_percentage_comes_back_as_the_one_that_was_typed():
     dine-in sales alone, while reporting them against dine-in plus delivery,
     silently handed back a lower number than the one on the sheet.
     """
-    import pathlib
-    import tempfile
-
-    from ui.backend import data_import_service as svc
-
-    with tempfile.TemporaryDirectory() as tmp:
-        original = svc.HISTORY_PATH
-        svc.HISTORY_PATH = pathlib.Path(tmp) / "history.json"
-        try:
-            csv_bytes = (
-                "date,outlet,dine_in_sales,delivery_sales,covers,food_cost_pct,"
-                "labour_cost_pct,checklist_total,checklist_signed_off\n"
-                "2026-09-20,Astra House,200000,50000,160,34.0,26.0,34,34\n"
-            ).encode()
-            svc.ingest(svc.parse_upload("d.csv", csv_bytes).records, "d.csv", "a@b.c")
-            daily = svc.current_daily_rows()[0]
-        finally:
-            svc.HISTORY_PATH = original
+    csv_bytes = (
+        "date,outlet,dine_in_sales,delivery_sales,covers,food_cost_pct,"
+        "labour_cost_pct,checklist_total,checklist_signed_off\n"
+        "2026-09-20,Astra House,200000,50000,160,34.0,26.0,34,34\n"
+    ).encode()
+    service.ingest(service.parse_upload("d.csv", csv_bytes).records, "d.csv", "a@b.c")
+    daily = service.current_daily_rows()[0]
 
     assert daily["total_revenue"] == 250000
     # 34% of the whole 250000 day, not of the 200000 dining-room half

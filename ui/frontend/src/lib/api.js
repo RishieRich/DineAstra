@@ -7,6 +7,41 @@
 
 const TOKEN_KEY = 'dineastra.token'
 const USER_KEY = 'dineastra.user'
+const WORKSPACE_KEY = 'dineastra.workspace'
+
+/**
+ * This browser's private sandbox of uploaded data.
+ *
+ * The demo link is shared, so without this every visitor would be writing
+ * into the same import history: one person clicking "clear all data" would
+ * empty the screen someone else was presenting from. The id is generated
+ * once, kept in localStorage, and sent on every call.
+ *
+ * If storage is blocked the id lives only for this page view, which still
+ * isolates the session -- it simply will not survive a refresh.
+ */
+let memoryWorkspace = null
+
+function newWorkspaceId() {
+  const random =
+    globalThis.crypto?.randomUUID?.() ??
+    `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`
+  return `ws-${random.replace(/-/g, '').slice(0, 24)}`
+}
+
+export function workspaceId() {
+  try {
+    let existing = window.localStorage.getItem(WORKSPACE_KEY)
+    if (!existing) {
+      existing = newWorkspaceId()
+      window.localStorage.setItem(WORKSPACE_KEY, existing)
+    }
+    return existing
+  } catch {
+    if (!memoryWorkspace) memoryWorkspace = newWorkspaceId()
+    return memoryWorkspace
+  }
+}
 
 export function readStoredSession() {
   try {
@@ -46,7 +81,7 @@ export class ApiError extends Error {
 }
 
 async function request(path, { method = 'GET', body, token } = {}) {
-  const headers = { Accept: 'application/json' }
+  const headers = { Accept: 'application/json', 'X-Workspace-Id': workspaceId() }
   if (body) headers['Content-Type'] = 'application/json'
   if (token) headers.Authorization = `Bearer ${token}`
 
@@ -112,6 +147,8 @@ export const api = {
     request('/api/data/quick-entry', { method: 'POST', token, body }),
   dataReset: (token, confirmation) =>
     request('/api/data/reset', { method: 'POST', token, body: { confirmation } }),
+  dataLoadSample: (token) =>
+    request('/api/data/load-sample', { method: 'POST', token, body: {} }),
   dataRejectReport: (token, batchId) =>
     download(`/api/data/rejects/${batchId}`, token, `${batchId}-rejected-rows.csv`),
 }
@@ -126,7 +163,7 @@ async function download(path, token, filename) {
   let response
   try {
     response = await fetch(path, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}`, 'X-Workspace-Id': workspaceId() },
     })
   } catch {
     throw new ApiError('The DineAstra API is not answering.', 0)
@@ -158,7 +195,11 @@ async function upload(path, file, token) {
   try {
     response = await fetch(path, {
       method: 'POST',
-      headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+        'X-Workspace-Id': workspaceId(),
+      },
       body: form,
     })
   } catch {

@@ -28,6 +28,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
 from ui.backend import data_import_service as importer  # noqa: E402
+from ui.backend import sample_rows  # noqa: E402
 
 SAMPLES_DIR = REPO_ROOT / "ui" / "frontend" / "public" / "samples"
 
@@ -47,6 +48,10 @@ THIN = Side(style="thin", color=LINE)
 CELL_BORDER = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 
 
+# The rows and column names come from ui/backend/sample_rows.py, which the
+# dashboard's "Load sample data" button also uses. Defining them in one place
+# is what makes "click the button, then upload this file" report every row as
+# unchanged instead of as an edit.
 SHEETS = [
     {
         "title": "Daily Operations",
@@ -57,41 +62,23 @@ SHEETS = [
             "outlet does not deliver. Reuse a date and outlet to load a correction; "
             "the previous version is kept, not overwritten."
         ),
-        "columns": [
-            "date", "outlet", "dine_in_sales", "delivery_sales", "covers",
-            "food_cost_pct", "labour_cost_pct", "checklist_total",
-            "checklist_signed_off", "notes",
-        ],
+        "columns": sample_rows.DAILY_COLUMNS,
         "required": (
             "date", "outlet", "dine_in_sales", "covers", "food_cost_pct",
             "labour_cost_pct", "checklist_total", "checklist_signed_off",
         ),
-        "rows": [
-            [date(2026, 9, 15), "Astra House, Indiranagar", 214600, 48200, 182, 33.9, 26.4, 12, 12, "Tuesday, chef's table at 8pm"],
-            [date(2026, 9, 16), "Astra House, Indiranagar", 198400, 52700, 169, 34.6, 27.1, 12, 11, "Walk-in cover count down"],
-            [date(2026, 9, 15), "Astra Terrace, Koramangala", 171900, 36400, 131, 34.1, 25.8, 10, 10, "Bar led the evening"],
-            [date(2026, 9, 16), "Astra Terrace, Koramangala", 164300, 39800, 124, 34.8, 26.3, 10, 10, "Rain cut the deck covers"],
-            [date(2026, 9, 15), "Astra Cafe, Whitefield", 76200, 41300, 147, 32.8, 24.9, 12, 12, "Delivery ahead of dine-in"],
-            [date(2026, 9, 16), "Astra Cafe, Whitefield", 71500, 44100, 138, 33.2, 25.4, 12, 11, "Late opening, one task missed"],
-        ],
+        "rows": sample_rows.DAILY_ROWS,
     },
     {
         "title": "Events",
         "dataset": "events",
         "blurb": (
-            "One row per banquet or event booking. Net and margin are computed "
+            "One row per private dining or event booking. Net and margin are computed "
             "from revenue and costs on load, so there is no margin column here."
         ),
-        "columns": [
-            "event_id", "event_name", "segment", "date", "covers", "venue",
-            "revenue", "food_cost", "beverage_cost", "labour_cost", "other_cost",
-        ],
+        "columns": sample_rows.EVENT_COLUMNS,
         "required": ("event_id", "event_name", "segment", "date", "covers", "revenue", "food_cost"),
-        "rows": [
-            ["BQ-2026-101", "Meridian Systems Leadership Dinner", "corporate", date(2026, 9, 15), 42, "Astra House, Private Room", 186000, 44500, 15200, 21800, 8400],
-            ["BQ-2026-102", "Sharma Anniversary Dinner", "celebration", date(2026, 9, 16), 28, "Astra Terrace, Sky Room", 74000, 22800, 7600, 9400, 3800],
-            ["BQ-2026-103", "Whitefield Supper Club", "group", date(2026, 9, 16), 34, "Astra Cafe, Whitefield", 61000, 16200, 5100, 7900, 2600],
-        ],
+        "rows": sample_rows.EVENT_ROWS,
         "note": "segment must be one of: " + ", ".join(importer.EVENT_SEGMENTS),
     },
     {
@@ -101,15 +88,9 @@ SHEETS = [
             "One row per purchase requisition line. The line total is unit cost "
             "times quantity, computed on load."
         ),
-        "columns": [
-            "requisition_id", "date", "item", "department", "vendor", "unit_cost", "quantity",
-        ],
+        "columns": sample_rows.REQUISITION_COLUMNS,
         "required": ("requisition_id", "date", "item", "department", "vendor", "unit_cost", "quantity"),
-        "rows": [
-            ["SUB-004201", date(2026, 9, 15), "Basmati Rice 1kg", "Kitchen", "Anand Grain Traders", 61, 38],
-            ["SUB-004202", date(2026, 9, 15), "Fresh Paneer 1kg", "Kitchen", "Himalayan Dairy Co", 340, 22],
-            ["SUB-004203", date(2026, 9, 16), "Delivery Packaging - Meal Box (100)", "Delivery & Packaging", "EcoPack Solutions", 495, 30],
-        ],
+        "rows": sample_rows.REQUISITION_ROWS,
     },
 ]
 

@@ -1,0 +1,15 @@
+# Nothing here belongs in a deployment bundle.
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+ui/frontend/dist/
+tmp/
+outputs/
+tests/
+specs/
+data/runtime/
+.git/
+*.md
+!README.md

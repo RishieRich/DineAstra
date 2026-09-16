@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 
-from ui.backend import auth, data_import_service
+from ui.backend import auth, data_import_service, sample_upload, store
 from ui.backend import repository as repo
 
 router = APIRouter(prefix="/api/data", tags=["data"])
@@ -34,6 +34,8 @@ def import_status(user: dict = Depends(auth.current_user)) -> dict:
         # it once data is uploaded for later days, so the two are not the same
         # question and the dashboard needs both.
         "today": repo.anchor_date().isoformat(),
+        "workspace": store.current_workspace(),
+        "storage": store.backend_name(),
         "available_date_range": {"first": first, "last": last},
         "last_updated_at": payload["recent_batches"][0]["loaded_at"]
         if payload["recent_batches"]
@@ -89,6 +91,24 @@ def reject_report(
             "Content-Disposition": f'attachment; filename="{batch_id}-rejected-rows.csv"'
         },
     )
+
+
+@router.post("/load-sample")
+def load_sample(user: dict = Depends(auth.current_user)) -> dict:
+    """Load the built-in sample rows through the ordinary import path."""
+    try:
+        result = sample_upload.load(user["email"])
+    except data_import_service.DataImportError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        ) from exc
+    return {
+        **result,
+        "rejected": 0,
+        "rejects": [],
+        "reject_report_url": None,
+        "data_status": data_import_service.status_payload(),
+    }
 
 
 class ResetRequest(BaseModel):

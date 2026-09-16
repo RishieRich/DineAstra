@@ -31,7 +31,6 @@ function DataStudio() {
   const [lastImport, setLastImport] = useState(null)
   const [reportError, setReportError] = useState(null)
   const [resetOpen, setResetOpen] = useState(false)
-  const [resetPhrase, setResetPhrase] = useState('')
   const [resetError, setResetError] = useState(null)
   const fileRef = useRef(null)
 
@@ -100,23 +99,48 @@ function DataStudio() {
     }
   }
 
-  async function confirmReset(event) {
-    event.preventDefault()
+  async function confirmReset() {
     setBusy(true)
     setResetError(null)
     try {
-      const result = await api.dataReset(token, resetPhrase)
+      // The API still requires the exact phrase; the screen types it for the
+      // reader rather than making them, because this only ever clears their
+      // own sandbox and a demo should be easy to start over in.
+      const result = await api.dataReset(token, 'RESET')
       setLastImport(null)
       setUploadError(null)
       setNoticeTitle('Back on sample data')
       setNotice(
-        `${result.removed_current_records} uploaded records and ${result.removed_versions} retained versions were discarded. The workspace is back on seeded sample data.`,
+        `${result.removed_current_records} loaded records and ${result.removed_versions} retained versions were discarded. You are back on the seeded sample dataset.`,
       )
       setResetOpen(false)
-      setResetPhrase('')
       setReloadKey((key) => key + 1)
     } catch (err) {
       setResetError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function loadSampleData() {
+    setBusy(true)
+    setNotice(null)
+    setUploadError(null)
+    try {
+      const result = await api.dataLoadSample(token)
+      setLastImport(result)
+      setNoticeTitle(result.created ? 'Sample data loaded' : 'Sample data already loaded')
+      const sheets = Object.values(result.datasets || {})
+        .map((entry) => `${entry.processed} ${entry.label.toLowerCase()}`)
+        .join(', ')
+      setNotice(
+        result.created
+          ? `${sheets} loaded for 15 and 16 September. Open the command centre and pick one of those dates.`
+          : 'Every sample row already matches the current version, so nothing was duplicated.',
+      )
+      setReloadKey((key) => key + 1)
+    } catch (err) {
+      setUploadError(err.message)
     } finally {
       setBusy(false)
     }
@@ -179,8 +203,21 @@ function DataStudio() {
             onChange={(event) => loadFile(event.target.files?.[0])}
           />
 
+          <button
+            type="button"
+            className="primary-button compact-button sample-load-button"
+            onClick={loadSampleData}
+            disabled={busy}
+          >
+            Load sample data
+          </button>
+          <p className="sample-load-note">
+            Loads two trading days, three events and three requisitions without a
+            file, through the same importer an upload uses.
+          </p>
+
           <div className="sample-files">
-            <p>Start with a prepared sample</p>
+            <p>Or download a file, edit it, and upload it back</p>
             <div>
               <a href="/samples/dineastra_daily_operations_template.xlsx" download>Excel template</a>
               <a href="/samples/dineastra_daily_operations_sample.csv" download>CSV sample</a>
@@ -290,42 +327,37 @@ function DataStudio() {
         <div className="card-heading">
           <div>
             <p className="eyebrow">Start again</p>
-            <h3>Return to the seeded sample data</h3>
+            <h3>Clear everything you have loaded</h3>
           </div>
           <span className="step-number">04</span>
         </div>
         <p className="reset-card__lead">
           {data.has_uploads
-            ? `This discards ${data.current_records} uploaded records and ${data.historical_versions} retained versions. It cannot be undone.`
-            : 'Nothing has been uploaded yet, so the workspace is already on seeded sample data.'}
+            ? `This discards ${data.current_records} loaded records and ${data.historical_versions} retained versions, and puts you back on the seeded sample dataset. It cannot be undone.`
+            : 'Nothing is loaded, so you are already on the seeded sample dataset. Load data above and this button will clear it.'}
+        </p>
+        <p className="reset-card__scope">
+          Everything you load is private to this browser. Clearing it affects
+          nothing that anyone else has open.
         </p>
         {!data.has_uploads ? null : resetOpen ? (
-          <form className="reset-confirm" onSubmit={confirmReset}>
-            <label htmlFor="reset-phrase">
-              Type <strong>RESET</strong> to confirm
-            </label>
-            <input
-              id="reset-phrase"
-              value={resetPhrase}
-              onChange={(event) => setResetPhrase(event.target.value)}
-              autoComplete="off"
-              placeholder="RESET"
-            />
-            <button type="submit" className="danger-button" disabled={busy || resetPhrase !== 'RESET'}>
-              Discard uploaded data
+          <div className="reset-confirm">
+            <span>Clear all loaded data?</span>
+            <button type="button" className="danger-button" onClick={confirmReset} disabled={busy}>
+              Yes, clear it
             </button>
             <button
               type="button"
               className="ghost-button"
-              onClick={() => { setResetOpen(false); setResetPhrase(''); setResetError(null) }}
+              onClick={() => { setResetOpen(false); setResetError(null) }}
             >
-              Keep my data
+              Keep it
             </button>
             {resetError ? <p className="reset-card__error" role="alert">{resetError}</p> : null}
-          </form>
+          </div>
         ) : (
           <button type="button" className="ghost-button" onClick={() => setResetOpen(true)}>
-            Reset to sample data
+            Clear all data
           </button>
         )}
       </section>

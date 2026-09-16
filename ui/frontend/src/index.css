@@ -691,3 +691,16 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   color: var(--color-ink); font-size: var(--text-md); font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
+
+/* The sample loader sits with the file intake, because it is the same act:
+ * getting data into the workspace. */
+.sample-load-button { width: 100%; margin-top: var(--space-md); }
+.sample-load-note {
+  margin: var(--space-sm) 0 0; color: var(--color-muted);
+  font-size: var(--text-xs); line-height: 1.5;
+}
+.reset-card__scope {
+  margin: calc(var(--space-lg) * -0.5) 0 var(--space-lg);
+  color: var(--color-muted); font-size: var(--text-xs); line-height: 1.5;
+}
+.reset-confirm span { color: var(--color-ink); font-size: var(--text-base); font-weight: 600; }

@@ -21,9 +21,9 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from ui.backend import store
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
-HISTORY_PATH = REPO_ROOT / "data" / "runtime" / "import_history.json"
-REJECT_DIR = REPO_ROOT / "data" / "runtime" / "reject_reports"
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 ACCEPTED_SUFFIXES = (".xlsx", ".csv", ".txt")
 _LOCK = threading.Lock()
@@ -74,19 +74,23 @@ def _header(value: Any) -> str:
 
 
 def _read_history() -> list[dict]:
-    if not HISTORY_PATH.exists():
-        return []
+    """Every version row for the workspace being served, oldest first."""
     try:
-        return json.loads(HISTORY_PATH.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError) as exc:
-        raise DataImportError("The local import history could not be read.") from exc
+        return store.get_store().read_all(store.current_workspace())
+    except DataImportError:
+        raise
+    except Exception as exc:  # a missing table, a dropped connection, bad JSON
+        raise DataImportError(
+            "The import history could not be read. If this is a fresh "
+            "deployment, check that DATABASE_URL is set and reachable."
+        ) from exc
 
 
 def _write_history(rows: list[dict]) -> None:
-    HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    temporary = HISTORY_PATH.with_suffix(".tmp")
-    temporary.write_text(json.dumps(rows, indent=2, ensure_ascii=False), encoding="utf-8")
-    temporary.replace(HISTORY_PATH)
+    try:
+        store.get_store().replace_all(store.current_workspace(), rows)
+    except Exception as exc:
+        raise DataImportError("The import history could not be saved.") from exc
 
 
 def _date(value: Any) -> str:
@@ -827,27 +831,24 @@ def status_payload() -> dict:
 
 
 def store_reject_report(batch_id: str, rejects: list[dict]) -> str | None:
-    """Write a batch's reject report and return the path the route serves.
+    """Keep a batch's reject report so the reader can download it.
 
-    Reports live under the git-ignored runtime directory beside the import
-    history, because they contain the customer's own rows.
+    Reports hold the customer's own rows, so they are scoped to the workspace
+    that produced them and go wherever the import history goes.
     """
     if not rejects:
         return None
-    REJECT_DIR.mkdir(parents=True, exist_ok=True)
-    path = REJECT_DIR / f"{batch_id}.csv"
-    path.write_text(reject_report_csv(rejects), encoding="utf-8")
-    return str(path)
+    store.get_store().put_report(
+        store.current_workspace(), batch_id, reject_report_csv(rejects)
+    )
+    return batch_id
 
 
 def load_reject_report(batch_id: str) -> str | None:
     """The stored report for a batch, or None if there was nothing to reject."""
     if not re.fullmatch(r"batch-[0-9a-f]{8}", batch_id or ""):
         return None
-    path = REJECT_DIR / f"{batch_id}.csv"
-    if not path.exists():
-        return None
-    return path.read_text(encoding="utf-8")
+    return store.get_store().get_report(store.current_workspace(), batch_id)
 
 
 RESET_CONFIRMATION_PHRASE = "RESET"
@@ -871,12 +872,8 @@ def reset_to_sample(confirmation: str) -> dict:
         history = _read_history()
         removed_versions = len(history)
         removed_current = len([row for row in history if row.get("is_current")])
-        HISTORY_PATH.unlink(missing_ok=True)
-        reports_removed = 0
-        if REJECT_DIR.exists():
-            for path in REJECT_DIR.glob("batch-*.csv"):
-                path.unlink(missing_ok=True)
-                reports_removed += 1
+        reports_removed = len({row.get("batch_id") for row in history if row.get("batch_id")})
+        store.get_store().clear(store.current_workspace())
 
     return {
         "status": "reset",

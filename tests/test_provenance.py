@@ -19,10 +19,8 @@ UPLOADED_DAY = "2026-09-19"
 
 
 @pytest.fixture
-def uploaded_day(tmp_path, monkeypatch):
+def uploaded_day():
     """One uploaded outlet-day on a date the seeded dataset does not cover."""
-    monkeypatch.setattr(service, "HISTORY_PATH", tmp_path / "history.json")
-    monkeypatch.setattr(service, "REJECT_DIR", tmp_path / "reject_reports")
     csv_bytes = (
         "date,outlet,dine_in_sales,covers,food_cost_pct,labour_cost_pct,"
         "checklist_total,checklist_signed_off\n"
@@ -74,9 +72,7 @@ def test_the_load_bearing_figures_survive_an_upload(uploaded_day):
     assert len(registry.METRICS) == 21
 
 
-def test_event_metrics_cite_data_studio_once_an_event_is_uploaded(tmp_path, monkeypatch):
-    monkeypatch.setattr(service, "HISTORY_PATH", tmp_path / "history.json")
-    monkeypatch.setattr(service, "REJECT_DIR", tmp_path / "reject_reports")
+def test_event_metrics_cite_data_studio_once_an_event_is_uploaded():
     events_csv = (
         "event_id,event_name,segment,date,covers,venue,revenue,food_cost,"
         "beverage_cost,labour_cost,other_cost\n"
