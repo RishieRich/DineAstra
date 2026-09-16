@@ -58,6 +58,14 @@ function Shell({ children, user, onSignOut }) {
   // than written into the markup, so it cannot quietly go stale.
   const [businessDate, setBusinessDate] = useState(null)
 
+  // Every navigation starts at the top of the new page. Without this the
+  // browser keeps the old scroll offset, so arriving at Data Studio from
+  // halfway down the command centre opened it with its heading already off
+  // the screen and no sign that there was anything above.
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [location.pathname])
+
   useEffect(() => {
     let cancelled = false
     api
@@ -87,7 +95,7 @@ function Shell({ children, user, onSignOut }) {
           <small>Restaurant & hospitality operations</small>
         </div>
 
-        <nav aria-label="Primary">
+        <nav aria-label="Primary" className="cascade" style={{ '--stagger-step': '55ms' }}>
           {NAV_GROUPS.map((group) => (
             <div className="nav-group" key={group.label}>
               <p>{group.label}</p>
@@ -123,7 +131,9 @@ function Shell({ children, user, onSignOut }) {
           </div>
         </header>
 
-        <main className="app-main">{children}</main>
+        <main className="app-main">
+          <div className="page-enter" key={location.pathname}>{children}</div>
+        </main>
 
         <footer className="app-footer">
           <span>Workspace: <strong>Astra House Group</strong></span>

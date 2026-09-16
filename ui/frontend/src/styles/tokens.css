@@ -79,3 +79,60 @@
   --shadow-card: 0 8px 24px rgba(23, 20, 47, 0.075);
   --shadow-button: 0 8px 18px rgba(23, 20, 47, 0.22);
 }
+
+/*
+ * Motion.
+ *
+ * Three easings and four durations, and nothing reaches for a raw
+ * cubic-bezier outside this file. --ease-out is the settle curve used by
+ * almost everything: fast departure, long quiet landing. --ease-spring
+ * overshoots by a hair and is reserved for things that appear (a card, a
+ * toggle), never for things that move under the cursor.
+ *
+ * --stagger-step is the gap between siblings in a cascade. 70ms reads as one
+ * deliberate sequence; below 40ms it reads as a glitch and above 120ms the
+ * reader starts waiting for it.
+ */
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --dur-fast: 140ms;
+  --dur-base: 220ms;
+  --dur-slow: 420ms;
+  --dur-reveal: 700ms;
+  --stagger-step: 70ms;
+
+  /* Translucent layers over burgundy. Named by what they are for, so a
+   * hairline and a fill never drift apart across files. */
+  --veil-line: rgba(234, 217, 175, 0.18);
+  --veil-line-strong: rgba(234, 217, 175, 0.32);
+  --veil-fill: rgba(255, 255, 255, 0.06);
+  --veil-fill-strong: rgba(255, 255, 255, 0.11);
+  --veil-gold: rgba(203, 168, 91, 0.22);
+  --veil-gold-strong: rgba(203, 168, 91, 0.45);
+  --veil-sheen: rgba(255, 255, 255, 0.22);
+  --veil-grid: rgba(234, 217, 175, 0.05);
+  --veil-vignette: rgba(23, 20, 47, 0.55);
+  --veil-scrim: rgba(23, 20, 47, 0.7);
+
+  /* Not a colour: the opaque end of an alpha mask. It lives here because
+   * rule X greps this file for every literal in the build and does not
+   * read the comment that would have explained an inline one. */
+  --mask-opaque: #000;
+
+  /* Elevation, raised and focused states */
+  --shadow-lift: 0 22px 50px rgba(23, 20, 47, 0.16);
+  --shadow-inset-top: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --ring-focus: 0 0 0 4px var(--color-burgundy-soft);
+  --ring-gold: 0 0 0 4px rgba(203, 168, 91, 0.2);
+
+  /* Aurora wash behind the sign-in story */
+  --aurora-1: rgba(111, 92, 201, 0.45);
+  --aurora-2: rgba(203, 168, 91, 0.26);
+  --aurora-3: rgba(31, 143, 112, 0.22);
+
+  --skeleton-base: #eceaf3;
+  --skeleton-sheen: #f7f6fb;
+}

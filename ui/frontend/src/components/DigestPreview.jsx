@@ -3,6 +3,11 @@ import { useEffect, useRef, useState } from 'react'
 /**
  * The WhatsApp preview for the GM digest. It previews and copies; it does
  * not send, because nothing is connected and the Connections screen says so.
+ *
+ * The sheet sits over a dimmed, blurred command centre rather than over a
+ * solid panel: the reader is checking a message about the figures they were
+ * just looking at, and losing sight of them entirely makes the preview feel
+ * like a different screen instead of a step on this one.
  */
 function DigestPreview({ digest, onClose }) {
   const [copied, setCopied] = useState(false)
@@ -30,42 +35,35 @@ function DigestPreview({ digest, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-10 flex items-center justify-center bg-burgundy-deep p-md"
+      className="digest-overlay"
       role="dialog"
       aria-modal="true"
       aria-label="WhatsApp digest preview"
     >
-      <div className="w-full max-w-lg rounded-md border border-line bg-paper p-lg">
-        <div className="flex items-start justify-between gap-md">
+      <div className="digest-sheet">
+        <div className="digest-sheet__head">
           <div>
-            <p className="text-xs tracking-[0.14em] text-muted">
-              WhatsApp preview
-            </p>
-            <h2 className="mt-xs font-serif text-2xl text-ink">Send to GM</h2>
+            <p className="eyebrow">WhatsApp preview</p>
+            <h2>Send to GM</h2>
           </div>
-          <button
-            ref={closeRef}
-            type="button"
-            onClick={onClose}
-            className="rounded-sm border border-line px-md py-xs text-sm text-ink"
-          >
+          <button ref={closeRef} type="button" onClick={onClose} className="ghost-button">
             Close
           </button>
         </div>
 
-        <pre className="mt-md max-h-80 overflow-y-auto whitespace-pre-wrap rounded-sm border border-line bg-paper p-md font-sans text-sm leading-relaxed text-ink">
-          {digest.text}
-        </pre>
+        <pre className="digest-message">{digest.text}</pre>
 
-        <div className="mt-md flex flex-wrap items-center gap-md">
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="rounded-sm border border-burgundy bg-burgundy px-md py-sm text-sm text-gold"
-          >
-            {copied ? 'Copied' : 'Copy message'}
+        <div className="digest-sheet__foot">
+          <button type="button" onClick={handleCopy} className="primary-button compact-button">
+            {copied ? (
+              <>
+                <span aria-hidden="true">✓</span> Copied
+              </>
+            ) : (
+              'Copy message'
+            )}
           </button>
-          <p className="text-xs text-muted">
+          <p>
             WhatsApp Business is not connected. Copy the message and send it
             yourself.
           </p>

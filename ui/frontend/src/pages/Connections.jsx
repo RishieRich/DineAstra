@@ -33,8 +33,8 @@ function Connections() {
               <p className="mt-xs text-sm text-muted">{connection.vendor}</p>
               <p className="mt-sm text-sm text-ink">{connection.description}</p>
             </div>
-            <p className="mt-md border-t border-line pt-sm text-sm text-muted">
-              Not connected
+            <p className="mt-md border-t border-line pt-sm">
+              <span className="status-chip status-chip--idle"><i /> Not connected</span>
             </p>
           </div>
         ))}

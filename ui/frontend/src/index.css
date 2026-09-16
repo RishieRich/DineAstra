@@ -5,6 +5,7 @@
 @import '@fontsource/manrope/600.css';
 @import '@fontsource/manrope/700.css';
 @import './styles/tokens.css';
+@import './styles/motion.css';
 
 @tailwind base;
 @tailwind components;
@@ -67,6 +68,18 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 .brand-mark--inverse .brand-mark__star { fill: var(--color-gold-bright); }
 .brand-mark--inverse .brand-mark__well { fill: var(--color-burgundy-deep); }
 
+/* --- Sign in ------------------------------------------------------------
+ *
+ * Two halves that do different jobs. The left one is the only place in the
+ * product where anything moves on its own: an aurora wash, three orbits and
+ * a scatter of starlight, all slow enough to read as lighting rather than as
+ * animation. The right one is a form, and a form is still a form -- it gets
+ * one entrance and then holds perfectly still.
+ *
+ * Everything on the left arrives in a cascade, top to bottom, in the order
+ * the reader should take it: who this is, what it claims, how it works.
+ */
+
 .login-shell {
   display: grid;
   min-height: 100%;
@@ -74,42 +87,126 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   background: var(--color-paper);
 }
 
+/* The story half ---------------------------------------------------------- */
+
 .login-story {
   position: relative;
+  display: grid;
   min-height: 100vh;
   overflow: hidden;
-  background: linear-gradient(145deg, var(--color-burgundy-deep), var(--color-burgundy-mid));
+  isolation: isolate;
+  background:
+    radial-gradient(125% 100% at 6% 0%, var(--color-burgundy-mid), transparent 60%),
+    linear-gradient(145deg, var(--color-burgundy-deep), var(--color-burgundy-mid));
   color: var(--color-gold-soft);
 }
 
+/* A vignette over the lot, so the aurora never reaches the seam where this
+ * panel meets the paper half and the join stays a clean edge. */
 .login-story::after {
   position: absolute;
-  inset: auto -8rem -8rem auto;
-  width: 22rem;
-  height: 22rem;
-  border-radius: 50%;
-  background: rgba(212, 168, 70, 0.08);
+  z-index: 2;
+  inset: 0;
+  background: radial-gradient(135% 115% at 46% 42%, transparent 42%, var(--veil-vignette) 100%);
   content: '';
+  pointer-events: none;
+}
+
+/* Three blurred washes on long, unequal periods, so the light never returns
+ * to the same arrangement twice within a sitting. */
+.login-aurora { position: absolute; z-index: 0; inset: 0; pointer-events: none; }
+.login-aurora i {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(64px);
+  will-change: transform;
+}
+.login-aurora i:nth-child(1) {
+  top: -14%; left: -12%; width: 34rem; height: 34rem;
+  background: var(--aurora-1);
+  animation: aurora-drift 26s var(--ease-in-out) infinite;
+}
+.login-aurora i:nth-child(2) {
+  bottom: -20%; left: 16%; width: 31rem; height: 31rem;
+  background: var(--aurora-2);
+  animation: aurora-drift 34s var(--ease-in-out) infinite reverse;
+}
+.login-aurora i:nth-child(3) {
+  top: 30%; right: -16%; width: 27rem; height: 27rem;
+  background: var(--aurora-3);
+  animation: aurora-drift 30s var(--ease-in-out) 4s infinite;
+}
+
+/* A plotted grid, faded out towards the edges: the panel is about reading a
+ * business off a chart, and the chart paper should be visible under it. */
+.login-grid {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--veil-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--veil-grid) 1px, transparent 1px);
+  background-size: 4.5rem 4.5rem;
+  -webkit-mask-image: radial-gradient(95% 72% at 26% 34%, var(--mask-opaque), transparent 76%);
+  mask-image: radial-gradient(95% 72% at 26% 34%, var(--mask-opaque), transparent 76%);
+  pointer-events: none;
+}
+
+.login-stars { position: absolute; z-index: 0; inset: 0; pointer-events: none; }
+.login-stars i {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--color-gold-bright);
+  opacity: 0.12;
+  animation: twinkle 5s var(--ease-in-out) infinite;
 }
 
 .orbit {
   position: absolute;
+  z-index: 0;
   right: -18rem;
   top: 5rem;
   width: 42rem;
   height: 42rem;
-  border: 1px solid rgba(212, 168, 70, 0.22);
+  border: 1px solid var(--veil-gold);
   border-radius: 50%;
+  pointer-events: none;
+}
+.orbit-one { animation: orbit-drift 18s var(--ease-in-out) infinite alternate; }
+.orbit-two {
+  right: -10rem; top: 12rem; width: 29rem; height: 29rem;
+  animation: orbit-drift 13s var(--ease-in-out) infinite alternate-reverse;
+}
+/* The third ring turns rather than drifts, and carries a single lit point --
+ * the one piece of motion on the screen with a definite direction. */
+.orbit-three {
+  right: -5rem; top: 19rem; width: 19rem; height: 19rem;
+  border-style: dashed;
+  animation: spin 54s linear infinite;
+}
+.orbit-three::before {
+  position: absolute;
+  top: -0.3rem;
+  left: 50%;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--color-gold-bright);
+  box-shadow: 0 0 14px var(--color-gold-bright);
+  content: '';
 }
 
-.orbit-one { animation: orbit-drift 18s ease-in-out infinite alternate; }
-.orbit-two { right: -10rem; top: 12rem; width: 29rem; height: 29rem; animation: orbit-drift 13s ease-in-out infinite alternate-reverse; }
-
+/* The only child of .login-story that is in flow, so the grid stretches it
+ * to the full height of the row -- which is the taller of the two halves,
+ * not the viewport. Without that the panel ran to 100vh and left a band of
+ * empty burgundy under the proof line whenever the form was the taller
+ * side. */
 .login-story__inner {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   display: flex;
-  min-height: 100vh;
   flex-direction: column;
   padding: clamp(2rem, 5vw, 5rem);
 }
@@ -118,36 +215,346 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 .brand-name { margin: 0; font-size: 1.15rem; font-weight: 600; letter-spacing: 0.08em; }
 .brand-byline { margin: 0.15rem 0 0; font-size: 0.76rem; color: var(--color-gold-soft); }
 
-.login-copy { max-width: 45rem; margin: auto 0 3rem; }
 .eyebrow { margin: 0 0 0.8rem; color: var(--color-burgundy); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
 .eyebrow--gold { color: var(--color-gold-bright); }
-.login-copy h1 { max-width: 42rem; margin: 0; color: var(--color-surface); font-family: var(--font-serif); font-size: clamp(2rem, 4vw, 3.25rem); font-weight: 400; letter-spacing: -0.03em; line-height: 1.1; }
+
+.login-copy { max-width: 45rem; margin: auto 0 2.6rem; padding-top: 3.5rem; }
+.login-copy h1 {
+  max-width: 42rem; margin: 0;
+  color: var(--color-surface);
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 400; letter-spacing: -0.03em; line-height: 1.12;
+}
+/* Each line arrives on its own, so the sentence is read the way it is
+ * written rather than landing as a block. */
+.login-copy h1 span { display: block; }
+.login-copy h1 .headline-accent {
+  color: var(--color-gold-bright);
+  font-style: italic;
+}
 .login-copy > p:last-child { max-width: 38rem; margin: 1.7rem 0 0; font-size: 1rem; line-height: 1.8; }
 
 .login-promises { display: grid; max-width: 46rem; gap: 0.7rem; }
-.login-promises div { display: grid; grid-template-columns: 2.2rem 1fr auto; align-items: center; gap: 1rem; padding: 0.9rem 1rem; border: 1px solid rgba(234, 217, 175, 0.18); border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.055); }
-.login-promises div:nth-child(1) { animation: cascade-in 600ms 120ms both; }
-.login-promises div:nth-child(2) { animation: cascade-in 600ms 260ms both; }
-.login-promises div:nth-child(3) { animation: cascade-in 600ms 400ms both; }
-.login-promises span { color: var(--color-gold); font-size: 0.72rem; }
+.login-promises > div {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.6rem 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  overflow: hidden;
+  padding: 0.95rem 1.15rem;
+  border: 1px solid var(--veil-line);
+  border-radius: var(--radius-md);
+  background: var(--veil-fill);
+  box-shadow: var(--shadow-inset-top);
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+/* A gold rail that grows down the leading edge on hover -- the same gesture
+ * the signed-in navigation uses for the page you are on. */
+.login-promises > div::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--color-gold);
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+  transition: transform var(--dur-base) var(--ease-out);
+  content: '';
+}
+.login-promises > div:hover {
+  transform: translate3d(6px, 0, 0);
+  border-color: var(--veil-line-strong);
+  background: var(--veil-fill-strong);
+}
+.login-promises > div:hover::before { transform: scaleY(1); }
+.login-promises span {
+  display: grid;
+  width: 2.6rem; height: 2.6rem;
+  place-items: center;
+  border: 1px solid var(--veil-gold-strong);
+  border-radius: 50%;
+  color: var(--color-gold);
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em;
+}
 .login-promises strong { color: var(--color-surface); font-size: 0.9rem; }
 .login-promises small { color: var(--color-gold-soft); font-size: 0.75rem; }
 
-.login-access { display: grid; min-height: 100vh; align-content: center; justify-items: center; padding: 6rem 2rem 3rem; position: relative; }
-.login-access__top { position: absolute; inset: 1.5rem 1.5rem auto; display: flex; justify-content: space-between; color: var(--color-muted); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
-.login-access__top i { display: inline-block; width: 0.45rem; height: 0.45rem; margin-right: 0.5rem; border-radius: 50%; background: var(--color-positive); box-shadow: 0 0 0 5px var(--color-positive-soft); }
-.login-card { width: min(100%, 35rem); padding: clamp(2rem, 4vw, 3.2rem); border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-soft); }
-.login-card .eyebrow { margin-top: 1.7rem; }
-.login-card h2 { margin: 0; font-family: var(--font-serif); font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 600; letter-spacing: -0.025em; line-height: 1.15; }
-.login-card__support { margin: 0.9rem 0 1.7rem; color: var(--color-muted); line-height: 1.6; }
-.login-card label { display: block; margin: 1rem 0 0.45rem; color: var(--color-ink); font-size: 0.82rem; font-weight: 600; }
-.login-card input { width: 100%; min-height: 3.4rem; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-surface); padding: 0.8rem 1rem; color: var(--color-ink); transition: border-color 160ms ease, box-shadow 160ms ease; }
-.login-card input:focus { border-color: var(--color-burgundy); box-shadow: 0 0 0 4px var(--color-burgundy-soft); outline: none; }
-.form-error { margin: 0.75rem 0 0; color: var(--color-negative); font-size: 0.82rem; }
-.primary-button, .demo-button { display: flex; width: 100%; min-height: 3.35rem; align-items: center; justify-content: center; gap: 0.7rem; border-radius: var(--radius-sm); font-weight: 600; }
-.primary-button { margin-top: 1.4rem; border: 1px solid var(--color-burgundy-deep); background: var(--color-burgundy-deep); color: var(--color-surface); box-shadow: var(--shadow-button); }
-.demo-button { margin-top: 0.75rem; border: 1px solid var(--color-line); background: var(--color-surface); color: var(--color-burgundy); }
+/* The proof line. One claim at a time, changed on a timer, because three of
+ * them side by side would compete with the headline above. */
+.login-proof {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  max-width: 46rem;
+  margin-top: 1.7rem;
+  padding-top: 1.3rem;
+  border-top: 1px solid var(--veil-line);
+  color: var(--color-gold-soft);
+  font-size: 0.79rem;
+}
+.login-proof__line { min-width: 0; min-height: 1.5rem; }
+.login-proof__line b { color: var(--color-surface); font-weight: 600; }
+.login-proof__line > span { display: block; animation: proof-in 540ms var(--ease-out) backwards; }
+.login-proof__dots { display: flex; flex: 0 0 auto; gap: 0.32rem; margin-left: auto; }
+.login-proof__dots i {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 999px;
+  background: var(--veil-line-strong);
+  transition: width var(--dur-slow) var(--ease-out), background-color var(--dur-slow) var(--ease-out);
+}
+.login-proof__dots i[data-current='true'] { width: 1.15rem; background: var(--color-gold); }
+
+/* The access half --------------------------------------------------------- */
+
+.login-access {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  align-content: center;
+  justify-items: center;
+  padding: clamp(4.5rem, 9vh, 6rem) 2rem 3rem;
+  background:
+    radial-gradient(72% 52% at 50% 0%, var(--color-burgundy-soft), transparent 72%),
+    var(--color-paper);
+}
+.login-access__top {
+  position: absolute;
+  inset: 1.5rem 1.5rem auto;
+  display: flex;
+  justify-content: space-between;
+  color: var(--color-muted);
+  font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  animation: reveal-fade var(--dur-slow) var(--ease-out) 260ms backwards;
+}
+.login-access__top i {
+  position: relative;
+  display: inline-block;
+  width: 0.45rem; height: 0.45rem;
+  margin-right: 0.55rem;
+  border-radius: 50%;
+  background: var(--color-positive);
+  box-shadow: 0 0 0 5px var(--color-positive-soft);
+}
+.login-access__top i::after {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--color-positive);
+  animation: signal-ring 2.6s var(--ease-out) infinite;
+  content: '';
+}
+
+.login-card {
+  position: relative;
+  width: min(100%, 35rem);
+  overflow: hidden;
+  padding: clamp(2rem, 4vw, 3.2rem);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+  animation: reveal-scale var(--dur-reveal) var(--ease-out) 140ms backwards;
+}
+/* A gold filament along the top edge, the only thing the two halves of the
+ * screen have in common besides the mark. */
+.login-card::before {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+  content: '';
+}
+.login-card > * { position: relative; }
+.login-card .eyebrow { margin-top: 1.4rem; }
+.login-card h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600; letter-spacing: -0.025em; line-height: 1.15;
+}
+.login-card__support { margin: 0.75rem 0 1.15rem; color: var(--color-muted); line-height: 1.6; }
 .login-card__foot { margin: 1.5rem 0 0; text-align: center; color: var(--color-muted); font-size: 0.73rem; }
+
+/* Fields. The icon is decorative and the label carries the name -- it is
+ * there so the two rows read as a pair rather than as two loose boxes. */
+.login-field { margin-top: 1.05rem; }
+.login-field label {
+  display: block;
+  margin: 0 0 0.45rem;
+  color: var(--color-ink);
+  font-size: 0.82rem; font-weight: 600;
+}
+.login-field__control { position: relative; display: block; }
+.login-field__icon {
+  position: absolute;
+  top: 50%; left: 0.95rem;
+  display: block;
+  width: 1.05rem; height: 1.05rem;
+  color: var(--color-muted);
+  transform: translateY(-50%);
+  transition: color var(--dur-base) var(--ease-out);
+  pointer-events: none;
+}
+.login-field__icon svg { display: block; width: 100%; height: 100%; }
+.login-field__control:focus-within .login-field__icon { color: var(--color-burgundy); }
+.login-field input {
+  width: 100%;
+  min-height: 3.4rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  padding: 0.8rem 1rem 0.8rem 2.9rem;
+  color: var(--color-ink);
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+.login-field input:focus { border-color: var(--color-burgundy); box-shadow: var(--ring-focus); outline: none; }
+.login-field--secret input { padding-right: 4.4rem; }
+.login-field__reveal {
+  position: absolute;
+  top: 50%; right: 0.55rem;
+  min-height: 2.2rem;
+  padding: 0 0.6rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-burgundy);
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  transform: translateY(-50%);
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+.login-field__reveal:hover { border-color: var(--color-line); background: var(--color-burgundy-soft); }
+
+.form-error {
+  margin: 1rem 0 0;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--color-negative);
+  border-radius: var(--radius-sm);
+  background: var(--color-negative-soft);
+  color: var(--color-negative);
+  font-size: 0.82rem; line-height: 1.5;
+  animation: reveal-up var(--dur-slow) var(--ease-out) backwards;
+}
+
+/* Buttons ---------------------------------------------------------------- */
+
+.primary-button, .demo-button {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 3.35rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+.primary-button {
+  margin-top: 1.4rem;
+  border: 1px solid var(--color-burgundy-deep);
+  background: linear-gradient(135deg, var(--color-burgundy), var(--color-burgundy-deep));
+  color: var(--color-surface);
+  box-shadow: var(--shadow-button);
+}
+.primary-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+.primary-button:active:not(:disabled) { transform: translateY(0); }
+/* One pass of light across the face on hover. It does not loop, and it never
+ * runs on a disabled button. */
+.primary-button::after {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 38%;
+  background: linear-gradient(90deg, transparent, var(--veil-sheen), transparent);
+  transform: translate3d(-130%, 0, 0) skewX(-18deg);
+  content: '';
+  pointer-events: none;
+}
+.primary-button:hover:not(:disabled)::after { animation: sheen-sweep 780ms var(--ease-out); }
+.primary-button .button-arrow { transition: transform var(--dur-base) var(--ease-out); }
+.primary-button:hover:not(:disabled) .button-arrow { transform: translateX(3px); }
+
+.demo-button {
+  margin-top: 0.75rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-burgundy);
+}
+.demo-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--color-gold);
+  background: var(--color-paper);
+  box-shadow: var(--shadow-card);
+}
+
+.spinner {
+  display: inline-block;
+  width: 0.95rem; height: 0.95rem;
+  flex: 0 0 auto;
+  border: 2px solid var(--veil-sheen);
+  border-top-color: var(--color-surface);
+  border-radius: 50%;
+  animation: spin 640ms linear infinite;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 1.2rem;
+  color: var(--color-muted);
+  font-size: 0.66rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+}
+.login-divider::before, .login-divider::after {
+  flex: 1;
+  height: 1px;
+  background: var(--color-line);
+  content: '';
+}
+
+/* The demo credentials, written out. A reader who cannot get past the first
+ * screen has no view of anything else, so this is not hidden behind a link. */
+.login-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.2rem 0 0;
+  padding: 0.72rem 0.85rem;
+  border: 1px dashed var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper);
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+.login-hint code {
+  color: var(--color-burgundy);
+  font-family: var(--font-sans);
+  font-size: 0.72rem; font-weight: 700;
+}
+.login-hint button {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--color-burgundy);
+  font-size: 0.72rem; font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.login-hint button:hover { color: var(--color-burgundy-deep); }
 
 @media (max-width: 960px) {
   .login-shell { grid-template-columns: 1fr; }
@@ -156,14 +563,20 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   .login-copy { margin: 4.5rem 0 2.5rem; }
   .login-copy h1 { font-size: clamp(1.9rem, 8vw, 2.6rem); }
   .login-access { min-height: auto; padding: 6rem 1rem 3rem; }
+  .orbit-three { display: none; }
 }
 
 @media (max-width: 620px) {
-  .login-promises div { grid-template-columns: 2rem 1fr; }
+  .login-promises > div { grid-template-columns: 2.2rem 1fr; padding: 0.8rem 0.9rem; }
+  .login-promises span { width: 2.2rem; height: 2.2rem; }
   .login-promises small { grid-column: 2; }
+  .login-promises > div:hover { transform: none; }
   .login-card { padding: 1.5rem; }
   .brand-byline { max-width: 14rem; }
+  .login-proof { flex-wrap: wrap; }
+  .login-proof__dots { margin-left: 0; }
 }
+
 
 /* Signed-in product shell */
 .app-shell { display: grid; min-height: 100%; grid-template-columns: 17.5rem minmax(0, 1fr); background: var(--color-paper); }
@@ -180,8 +593,21 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 .nav-group > p { margin-left: 0.65rem; color: rgba(234, 217, 175, 0.54); }
 .nav-link { position: relative; display: grid; min-height: 2.8rem; grid-template-columns: 1.8rem 1fr auto; align-items: center; gap: 0.55rem; margin: 0.25rem 0; padding: 0.5rem 0.7rem; border: 1px solid transparent; border-radius: var(--radius-sm); color: rgba(255, 255, 255, 0.72); font-size: 0.82rem; font-weight: 500; text-decoration: none; transition: 160ms ease; }
 .nav-link:hover { color: var(--color-surface); background: rgba(255, 255, 255, 0.05); }
-.nav-link--active { border-color: rgba(212, 168, 70, 0.25); background: rgba(212, 168, 70, 0.12); color: var(--color-surface); }
-.nav-link--active::before { position: absolute; left: -0.72rem; width: 3px; height: 1.55rem; border-radius: 0 3px 3px 0; background: var(--color-gold); content: ''; }
+.nav-link--active { border-color: var(--veil-gold); background: rgba(212, 168, 70, 0.12); color: var(--color-surface); }
+/* The gold rail is drawn on every link and scaled to nothing unless the link
+ * is the current page. Drawing it only on the active one meant it appeared
+ * fully formed on a node that had just been created, with nothing to
+ * animate from. */
+.nav-link::before {
+  position: absolute; left: -0.72rem;
+  width: 3px; height: 1.55rem;
+  border-radius: 0 3px 3px 0;
+  background: var(--color-gold);
+  transform: scaleY(0);
+  transition: transform var(--dur-base) var(--ease-spring);
+  content: '';
+}
+.nav-link--active::before { transform: scaleY(1); }
 .nav-icon { display: grid; width: 1.65rem; height: 1.65rem; place-items: center; color: var(--color-gold-soft); font-size: 1rem; }
 .nav-link em { border-radius: 999px; background: var(--color-gold-soft); color: var(--color-burgundy-deep); padding: 0.15rem 0.42rem; font-size: 0.58rem; font-style: normal; font-weight: 700; }
 .sidebar-foot { margin: auto 1rem 1rem; padding: 0.9rem 1rem; border-top: 1px solid rgba(234, 217, 175, 0.16); }
@@ -535,16 +961,6 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   .metric-grid, .data-stat-grid { grid-template-columns: 1fr; }
 }
 
-@keyframes orbit-drift {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to { transform: translate3d(-1.5rem, 1rem, 0) scale(1.04); }
-}
-
-@keyframes cascade-in {
-  from { opacity: 0; transform: translate3d(0, 1rem, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
-}
-
 /* Ask AI */
 .ask-workspace { display: flex; min-height: 36rem; flex-direction: column; overflow: hidden; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-card); }
 .ask-empty { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; padding: 3rem 1rem; text-align: center; }
@@ -606,6 +1022,10 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
+    /* Entrances are staggered by animation-delay and filled backwards, so a
+     * delay left standing here would hold content off the screen for a
+     * second and a half before snapping it in. */
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
@@ -704,3 +1124,502 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   color: var(--color-muted); font-size: var(--text-xs); line-height: 1.5;
 }
 .reset-confirm span { color: var(--color-ink); font-size: var(--text-base); font-weight: 600; }
+
+/* --- Depth, hover and entrance in the signed-in workspace ---------------
+ *
+ * Everything below is additive: it changes how the existing surfaces feel
+ * under a cursor and how they arrive on screen, and changes no layout, no
+ * figure and no copy. It sits at the foot of the file so it wins over the
+ * base rules above without any of them needing !important.
+ *
+ * The rule for hover states across the product: a surface lifts only if
+ * clicking it does something. A card that is just a card stays where it is,
+ * however tempting it is to make the whole dashboard float.
+ */
+
+/* Sidebar ---------------------------------------------------------------- */
+
+.sidebar {
+  border-right: 1px solid var(--veil-line);
+  background:
+    radial-gradient(125% 48% at 0% 0%, var(--color-burgundy-mid), transparent 60%),
+    var(--color-burgundy-deep);
+}
+
+/* The mark turns an eighth of a turn -- the star has eight points, so it
+ * lands back on itself and the gesture reads as a catch of light. */
+.sidebar-brand .brand-mark { transition: transform var(--dur-slow) var(--ease-spring); }
+.sidebar-brand:hover .brand-mark { transform: rotate(45deg); }
+
+.nav-link {
+  transition:
+    color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+.nav-link:hover { transform: translateX(3px); }
+.nav-icon {
+  transition:
+    color var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-spring);
+}
+.nav-link:hover .nav-icon { color: var(--color-gold-bright); transform: scale(1.14); }
+.nav-link--active .nav-icon { color: var(--color-gold-bright); }
+.nav-link em { box-shadow: 0 0 0 3px var(--veil-gold); }
+
+.workspace-card {
+  transition: border-color var(--dur-base) var(--ease-out), background-color var(--dur-base) var(--ease-out);
+}
+.workspace-card:hover { border-color: var(--veil-line-strong); background: var(--veil-fill-strong); }
+
+/* Topbar ----------------------------------------------------------------- */
+
+.topbar {
+  background:
+    linear-gradient(180deg, var(--color-burgundy-mid), var(--color-burgundy-deep));
+}
+.date-chip, .sample-chip, .signout-button {
+  transition:
+    color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+.signout-button:hover {
+  border-color: var(--veil-gold-strong);
+  background: var(--veil-fill);
+  color: var(--color-gold-bright);
+}
+.user-chip { transition: transform var(--dur-base) var(--ease-spring), box-shadow var(--dur-base) var(--ease-out); }
+.user-chip:hover { transform: scale(1.07); box-shadow: var(--ring-gold); }
+/* The "live" dot on the sample chip sends out a ring, so the claim that the
+ * workspace is connected is made by something that is visibly still running
+ * rather than by a static green circle. */
+.sample-chip i, .sidebar-foot i, .secure-note i { position: relative; }
+.sample-chip i::after, .sidebar-foot i::after, .secure-note i::after {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: signal-ring 2.8s var(--ease-out) infinite;
+  content: '';
+}
+
+/* Cards and figures ------------------------------------------------------ */
+
+/* The hero's charger ring drifts, at a period long enough that it reads as
+ * lighting on a surface rather than as something being animated. */
+.hero-figure::after { animation: float-slow 11s var(--ease-in-out) infinite; }
+
+/* Six tiles, arriving left to right. The step is deliberately short: this
+ * replays whenever the reporting window changes, and at that moment it is
+ * doing a second job -- telling the reader the figures were recomputed. */
+.metric-grid { --stagger-step: 45ms; }
+.metric-grid > * { animation-duration: var(--dur-slow); }
+
+.metric-card {
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+.metric-card::before { transition: width var(--dur-base) var(--ease-out); }
+.metric-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-burgundy-soft);
+  box-shadow: var(--shadow-lift);
+}
+.metric-card:hover::before { width: 4px; }
+.metric-strip > div { transition: background-color var(--dur-fast) var(--ease-out); }
+.metric-strip > div:hover { background: var(--color-paper); }
+
+/* The attention card is a button -- it carries its question into Ask -- so
+ * it is one of the few surfaces allowed to lift. */
+.attention-card {
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+.attention-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-gold-bright);
+  box-shadow: var(--shadow-lift);
+}
+.attention-card__ask { transition: transform var(--dur-base) var(--ease-out); }
+.attention-card:hover .attention-card__ask { transform: translateX(4px); }
+.attention-card--quiet:hover { transform: none; border-color: var(--color-line); box-shadow: var(--shadow-card); }
+
+/* Buttons and links across the workspace --------------------------------- */
+
+.secondary-button, .ghost-button {
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+.secondary-button:hover, .ghost-button:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-burgundy);
+  box-shadow: var(--shadow-card);
+}
+.card-heading a {
+  display: inline-block;
+  transition: transform var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
+}
+.card-heading a:hover { transform: translateX(3px); color: var(--color-burgundy-deep); }
+.ask-suggestions button {
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+.ask-suggestions button:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
+.ask-composer button { transition: transform var(--dur-base) var(--ease-spring), box-shadow var(--dur-base) var(--ease-out); }
+.ask-composer button:hover:not(:disabled) { transform: scale(1.06); box-shadow: var(--shadow-lift); }
+.sample-files a {
+  transition: border-color var(--dur-base) var(--ease-out), background-color var(--dur-base) var(--ease-out);
+}
+.sample-files a:hover { border-color: var(--color-gold); background: var(--color-paper); }
+.roadmap-strip span { transition: border-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out); }
+.roadmap-strip span:hover { border-color: var(--veil-gold-strong); color: var(--color-gold-bright); }
+
+/* Charts ----------------------------------------------------------------- */
+
+/* Bars rise off the axis, left to right, once per draw. 9ms a bar keeps a
+ * sixty-day window inside about half a second, so the sweep finishes before
+ * the reader has found the day they came to look at. */
+.bar-stack {
+  transform-origin: 50% 100%;
+  animation: bar-grow 520ms var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * 9ms);
+}
+.bar-slot { transition: none; }
+.target-rule { animation: reveal-fade var(--dur-slow) var(--ease-out) 620ms backwards; }
+
+/* The three pulse tracks fill from the left as the card arrives. */
+.pulse-track i {
+  transform-origin: 0 50%;
+  animation: track-fill 850ms var(--ease-out) 180ms backwards;
+}
+
+/* Tables ----------------------------------------------------------------- */
+
+.app-main tbody tr { transition: background-color var(--dur-fast) var(--ease-out); }
+.app-main tbody tr:hover { background: var(--color-paper); }
+
+/* Loading ---------------------------------------------------------------- */
+
+/* A skeleton of the page that is coming, not a sentence about it. The shapes
+ * match the command centre -- a heading, a lead line, a row of tiles, a
+ * chart -- so the screen does not rearrange itself the moment data lands. */
+.skeleton-stack { display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-sm) 0; }
+.skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-sheen) 45%,
+    var(--skeleton-base) 90%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-sweep 1.6s linear infinite;
+}
+.skeleton--title { width: 18rem; max-width: 55%; height: 2.1rem; }
+.skeleton--line { width: 30rem; max-width: 80%; height: 0.85rem; }
+.skeleton--hero { height: 12rem; border-radius: var(--radius-lg); }
+.skeleton--tile { height: 7rem; border-radius: var(--radius-md); }
+.skeleton--block { height: 13rem; border-radius: var(--radius-lg); }
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.85rem;
+}
+.skeleton-split { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: var(--space-md); }
+
+/* The error state is a card, with the same shape as the surfaces around it,
+ * because an error that looks like stray text reads as a broken page rather
+ * than as a message. */
+.error-card {
+  max-width: 44rem;
+  border: 1px solid var(--color-negative);
+  border-left-width: 3px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-card);
+  animation: reveal-up var(--dur-slow) var(--ease-out) backwards;
+}
+.error-card h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.error-card p { margin: var(--space-sm) 0 0; color: var(--color-muted); font-size: var(--text-base); line-height: 1.6; }
+.error-card__detail {
+  margin-top: var(--space-md);
+  border-radius: var(--radius-sm);
+  background: var(--color-negative-soft);
+  padding: 0.6rem 0.8rem;
+  color: var(--color-negative);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+/* Chrome ----------------------------------------------------------------- */
+
+::selection { background: var(--color-burgundy-soft); color: var(--color-burgundy-deep); }
+
+* { scrollbar-width: thin; scrollbar-color: var(--color-line) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--color-line);
+  transition: background-color var(--dur-base) var(--ease-out);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--chart-axis); }
+/* The sidebar and the nav strip inside it are dark, so the paper-coloured
+ * thumb above would have been the brightest thing on them. On a narrow
+ * screen the nav becomes a horizontal scroller and that thumb sat directly
+ * under the gold rail marking the current page. */
+.sidebar, .sidebar * { scrollbar-color: var(--veil-line-strong) transparent; }
+.sidebar::-webkit-scrollbar-thumb,
+.sidebar ::-webkit-scrollbar-thumb { background: var(--veil-line-strong); }
+.sidebar ::-webkit-scrollbar { width: 6px; height: 4px; }
+
+/* A touch device has no hover, and a lift that never comes back reads as a
+ * bug. Everything above degrades to its resting state. */
+@media (hover: none) {
+  .nav-link:hover,
+  .metric-card:hover,
+  .attention-card:hover,
+  .secondary-button:hover,
+  .ghost-button:hover,
+  .ask-suggestions button:hover,
+  .login-promises > div:hover,
+  .primary-button:hover:not(:disabled),
+  .demo-button:hover:not(:disabled) { transform: none; }
+}
+
+/* --- Segment filters ----------------------------------------------------
+ *
+ * A row of toggles, one of which is always on. The selected one is filled
+ * rather than outlined, because "all segments" and "corporate" are the same
+ * kind of thing and only fill separates them at a glance.
+ */
+.filter-row { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+.filter-chip {
+  min-height: 2.4rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  padding: 0.4rem 0.95rem;
+  color: var(--color-ink);
+  font-size: var(--text-base);
+  font-weight: 500;
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+/* The segment names arrive lower-cased from the API and the fixed first
+ * entry is sentence case, so only the opening letter is lifted. A plain
+ * text-transform: capitalize would have turned "All segments" into
+ * "All Segments". */
+.filter-chip::first-letter { text-transform: uppercase; }
+.filter-chip:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-burgundy);
+  box-shadow: var(--shadow-card);
+}
+.filter-chip--active {
+  border-color: var(--color-burgundy-deep);
+  background: var(--color-burgundy-deep);
+  color: var(--color-gold-bright);
+  box-shadow: var(--shadow-card);
+}
+.filter-chip--active:hover { border-color: var(--color-gold); }
+
+/* --- Rows that go somewhere ---------------------------------------------
+ *
+ * A row the reader can open gets a cursor, a fill, and a gold edge that
+ * grows from the left on hover -- the same rail the navigation uses for the
+ * current page, so "this one is live" reads the same everywhere.
+ */
+.app-main tbody tr[data-interactive='true'] { cursor: pointer; }
+.app-main tbody tr[data-interactive='true'] td:first-child {
+  position: relative;
+  box-shadow: inset 0 0 0 0 var(--color-gold);
+  transition: box-shadow var(--dur-base) var(--ease-out);
+}
+.app-main tbody tr[data-interactive='true']:hover { background: var(--color-burgundy-soft); }
+.app-main tbody tr[data-interactive='true']:hover td:first-child {
+  box-shadow: inset 3px 0 0 0 var(--color-gold);
+}
+.app-main tbody tr[data-interactive='true']:focus-visible {
+  background: var(--color-burgundy-soft);
+  outline: 2px solid var(--color-gold);
+  outline-offset: -2px;
+}
+
+/* --- Data Studio --------------------------------------------------------
+ *
+ * The drop zone is the one target on the screen, so it is the one thing
+ * allowed to react at full size: the border tightens, the plate lifts, and
+ * the glyph rises to meet the cursor.
+ */
+.drop-zone {
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+.drop-zone--active { box-shadow: var(--ring-gold); }
+.upload-glyph {
+  transition: transform var(--dur-base) var(--ease-spring), box-shadow var(--dur-base) var(--ease-out);
+}
+.drop-zone:hover .upload-glyph, .drop-zone--active .upload-glyph {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-button);
+}
+.data-stat-grid article {
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+.data-stat-grid article:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+.batch-list > div { transition: background-color var(--dur-fast) var(--ease-out); }
+.lineage-flow > div {
+  transition: border-color var(--dur-base) var(--ease-out), background-color var(--dur-base) var(--ease-out);
+}
+.lineage-flow > div:hover { border-color: var(--color-gold); background: var(--color-paper); }
+
+/* --- Ask ---------------------------------------------------------------
+ *
+ * The answer arrives as one block once the first token lands, and the mark
+ * beside it pulses only while the stream is open. Everything else on the
+ * screen holds still: text that is still being written is hard enough to
+ * read without the frame moving too.
+ */
+.ask-answer { animation: reveal-up var(--dur-slow) var(--ease-out) backwards; }
+.ask-answer__body .ask-spark { animation: float-slow 4s var(--ease-in-out) infinite; }
+.typing-dot { animation: caret-blink 1.1s var(--ease-in-out) infinite; }
+.ask-empty .ask-spark { animation: float-slow 6s var(--ease-in-out) infinite; }
+.ask-suggestions { --stagger-step: 60ms; }
+
+/* --- The digest sheet ---------------------------------------------------
+ *
+ * Over a dimmed command centre, not over a solid panel: the figures the
+ * message is about stay visible behind it, so the preview reads as a step on
+ * this screen rather than as a different one. Dimmed and not blurred --
+ * constitution rule X bans backdrop blur, and a heavier scrim separates the
+ * two layers just as well without it.
+ */
+.digest-overlay {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  background: var(--veil-scrim);
+  animation: reveal-fade var(--dur-base) var(--ease-out) backwards;
+}
+.digest-sheet {
+  width: min(100%, 34rem);
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-lift);
+  animation: reveal-scale var(--dur-slow) var(--ease-out) 60ms backwards;
+}
+.digest-sheet__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-md); }
+.digest-sheet__head .eyebrow { margin-bottom: 0.3rem; }
+.digest-sheet__head h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.digest-sheet__head .ghost-button { flex: 0 0 auto; }
+
+/* The message itself, set as a quoted block against a gold rule -- it is
+ * the text that will be sent verbatim, so it is shown verbatim. */
+.digest-message {
+  max-height: 20rem;
+  margin: var(--space-md) 0 0;
+  overflow-y: auto;
+  border: 1px solid var(--color-line);
+  border-left: 3px solid var(--color-gold);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper);
+  padding: var(--space-md);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+.digest-sheet__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+.digest-sheet__foot .primary-button { width: auto; margin-top: 0; flex: 0 0 auto; }
+.digest-sheet__foot p { flex: 1 1 14rem; margin: 0; color: var(--color-muted); font-size: var(--text-xs); line-height: 1.5; }
+
+/* --- The screens built from utilities rather than named classes ---------
+ *
+ * Brain, Connections, Proof and the event detail predate the named surface
+ * classes and are assembled from Tailwind utilities. Rather than rewrite
+ * four screens to change how they feel, the same treatment is matched on the
+ * utilities themselves, immediately after the rule above that already gives
+ * them their background and shadow.
+ *
+ * Panels get a border and a deeper shadow on hover and no lift, because
+ * they are not clickable. Buttons and links get the lift, because they are.
+ */
+.app-main [class*="rounded-md"][class*="border-line"] {
+  border-radius: var(--radius-lg);
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+.app-main [class*="rounded-md"][class*="border-line"]:hover {
+  border-color: var(--color-burgundy-soft);
+  box-shadow: var(--shadow-soft);
+}
+
+.app-main button[class*="rounded-sm"],
+.app-main a[class*="rounded-sm"] {
+  min-height: 2.4rem;
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+.app-main button[class*="rounded-sm"]:hover,
+.app-main a[class*="rounded-sm"]:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-burgundy);
+  box-shadow: var(--shadow-card);
+}
+
+/* A connection that is not connected says so with a grey light, not the
+ * green one every other chip in the product uses for "live". */
+.status-chip--idle { border-color: var(--color-line); color: var(--color-muted); }
+.status-chip--idle i { background: var(--chart-axis); }

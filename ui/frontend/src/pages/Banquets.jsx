@@ -31,7 +31,7 @@ function Banquets() {
         support="Settled margin, never quoted margin, per the costing policy."
       />
 
-      <div className="flex flex-wrap gap-sm">
+      <div className="filter-row">
         {filters.map((filter) => {
           const active = filter.key === segment
           return (
@@ -40,11 +40,7 @@ function Banquets() {
               type="button"
               onClick={() => setSegment(filter.key)}
               aria-pressed={active}
-              className={`rounded-sm border px-md py-xs text-sm ${
-                active
-                  ? 'border-burgundy bg-burgundy text-gold'
-                  : 'border-line text-ink'
-              }`}
+              className={`filter-chip ${active ? 'filter-chip--active' : ''}`}
             >
               {filter.label}
             </button>

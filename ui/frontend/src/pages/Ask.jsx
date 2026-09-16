@@ -77,7 +77,7 @@ function Ask() {
             <span className="ask-spark" aria-hidden="true">✦</span>
             <h3>What would you like to understand?</h3>
             <p>Ask about revenue, food cost, events, standards or an operating exception.</p>
-            <div className="ask-suggestions">
+            <div className="ask-suggestions cascade">
               {SUGGESTION_CHIPS.map((chip) => (
                 <button key={chip} type="button" onClick={() => askChip(chip)}>{chip}</button>
               ))}

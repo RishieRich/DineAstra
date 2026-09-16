@@ -86,6 +86,7 @@ function RevenueTrend({ rows }) {
               type="button"
               key={row.date}
               className={`bar-slot ${hover === index ? 'bar-slot--active' : ''}`}
+              style={{ '--i': index }}
               onMouseEnter={() => setHover(index)}
               onFocus={() => setHover(index)}
               onBlur={() => setHover(null)}
@@ -191,6 +192,7 @@ export function CostTrend({ rows, targetPct = 31 }) {
               type="button"
               key={row.date}
               className={`bar-slot ${hover === index ? 'bar-slot--active' : ''}`}
+              style={{ '--i': index }}
               onMouseEnter={() => setHover(index)}
               onFocus={() => setHover(index)}
               onBlur={() => setHover(null)}

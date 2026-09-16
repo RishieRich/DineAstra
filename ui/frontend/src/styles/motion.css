@@ -1,0 +1,190 @@
+/*
+ * DineAstra motion.
+ *
+ * One vocabulary for everything that moves, so a card entering the command
+ * centre and a promise entering the sign-in screen are recognisably the same
+ * gesture. Three rules hold it together:
+ *
+ *   1. Things enter from where they came from. A panel that slides in from
+ *      the left keeps sliding left; nothing enters from a direction it will
+ *      never travel again.
+ *   2. Entrances are staggered, never simultaneous. A cascade tells the
+ *      reader what to read first; six things appearing at once tells them
+ *      nothing.
+ *   3. Nothing loops in the reading area. Ambient motion -- aurora, orbits,
+ *      starlight -- lives only behind the sign-in story, where there is
+ *      nothing to read closely.
+ *
+ * Every animation here is disabled wholesale by the prefers-reduced-motion
+ * block at the foot of index.css, and every one of them ends on the state
+ * the element would have had with no animation at all -- so a reader who
+ * turns motion off loses the choreography and none of the interface.
+ *
+ * Entrances fill *backwards*, never *both*. A forwards fill keeps the final
+ * keyframe pinned to the element at animation priority, which silently wins
+ * over every later :hover rule -- a card that cascaded in would then refuse
+ * to lift under the cursor. Backwards holds the element at its starting
+ * keyframe through the delay and then hands it back to the cascade, which
+ * is what the end of every entrance here already describes.
+ */
+
+/* --- Entrances ----------------------------------------------------------
+ *
+ * A cascade is a parent that hands each child an index. Children read it as
+ * --i and multiply it by --stagger-step; a container can shift the whole
+ * sequence later with --delay without touching the steps inside it.
+ */
+
+.cascade > * {
+  animation: reveal-up var(--dur-reveal) var(--ease-out) backwards;
+  animation-delay: calc(var(--delay, 0ms) + var(--i, 0) * var(--stagger-step));
+}
+
+.cascade > *:nth-child(1)  { --i: 0; }
+.cascade > *:nth-child(2)  { --i: 1; }
+.cascade > *:nth-child(3)  { --i: 2; }
+.cascade > *:nth-child(4)  { --i: 3; }
+.cascade > *:nth-child(5)  { --i: 4; }
+.cascade > *:nth-child(6)  { --i: 5; }
+.cascade > *:nth-child(7)  { --i: 6; }
+.cascade > *:nth-child(8)  { --i: 7; }
+.cascade > *:nth-child(9)  { --i: 8; }
+.cascade > *:nth-child(10) { --i: 9; }
+.cascade > *:nth-child(11) { --i: 10; }
+.cascade > *:nth-child(12) { --i: 11; }
+.cascade > *:nth-child(n + 13) { --i: 12; }
+
+/* Direction variants, set on the cascade parent so one container moves as
+ * one piece. */
+.cascade--left > *  { animation-name: reveal-left; }
+.cascade--right > * { animation-name: reveal-right; }
+.cascade--scale > * { animation-name: reveal-scale; }
+.cascade--fade > *  { animation-name: reveal-fade; }
+
+/* A single element, same vocabulary, no parent required. */
+.reveal {
+  animation: reveal-up var(--dur-reveal) var(--ease-out) backwards;
+  animation-delay: calc(var(--delay, 0ms) + var(--i, 0) * var(--stagger-step));
+}
+.reveal--left  { animation-name: reveal-left; }
+.reveal--right { animation-name: reveal-right; }
+.reveal--scale { animation-name: reveal-scale; }
+.reveal--fade  { animation-name: reveal-fade; }
+
+@keyframes reveal-up {
+  from { opacity: 0; transform: translate3d(0, 1.35rem, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes reveal-left {
+  from { opacity: 0; transform: translate3d(-1.75rem, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes reveal-right {
+  from { opacity: 0; transform: translate3d(1.75rem, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* The only entrance that overshoots. Kept for cards that arrive on top of
+ * the screen rather than within it. */
+@keyframes reveal-scale {
+  from { opacity: 0; transform: translate3d(0, 1.25rem, 0) scale(0.965); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes reveal-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Routed pages. Short and small: this fires on every navigation, and an
+ * entrance the reader sees forty times a day must not be a performance. */
+.page-enter {
+  animation: page-enter var(--dur-slow) var(--ease-out) backwards;
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translate3d(0, 0.65rem, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* --- Ambient ------------------------------------------------------------
+ *
+ * Background only. Long periods, low amplitude, and no hard edges, so the
+ * eye reads the sign-in panel as lit rather than as animated.
+ */
+
+@keyframes orbit-drift {
+  from { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
+  to   { transform: translate3d(-1.5rem, 1rem, 0) scale(1.04) rotate(8deg); }
+}
+
+@keyframes aurora-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(3vw, -2vh, 0) scale(1.18); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.12; transform: scale(0.85); }
+  50%      { opacity: 0.9;  transform: scale(1); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -0.5rem, 0); }
+}
+
+/* --- Feedback -----------------------------------------------------------
+ *
+ * Motion that answers something the reader did, or stands in for something
+ * not arrived yet.
+ */
+
+/* The sweep across a primary button on hover. One pass, no loop. */
+@keyframes sheen-sweep {
+  from { transform: translate3d(-120%, 0, 0) skewX(-18deg); }
+  to   { transform: translate3d(320%, 0, 0) skewX(-18deg); }
+}
+
+@keyframes skeleton-sweep {
+  from { background-position: -140% 0; }
+  to   { background-position: 240% 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* A live indicator: the dot stays put and a ring leaves it. */
+@keyframes signal-ring {
+  0%   { opacity: 0.55; transform: scale(1); }
+  70%  { opacity: 0;    transform: scale(2.6); }
+  100% { opacity: 0;    transform: scale(2.6); }
+}
+
+/* Bars rise from the axis they are measured against. */
+@keyframes bar-grow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+/* A progress track fills from the left once, on arrival. */
+@keyframes track-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* The rotating proof line under the sign-in story. Out and back in one
+ * keyframe set, driven by a class React swaps. */
+@keyframes proof-in {
+  from { opacity: 0; transform: translate3d(0, 0.7rem, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* The caret after streamed text. */
+@keyframes caret-blink {
+  0%, 45%   { opacity: 1; }
+  55%, 100% { opacity: 0.15; }
+}

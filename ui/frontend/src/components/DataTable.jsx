@@ -46,9 +46,8 @@ function DataTable({ columns, rows, onRowClick, getRowKey, emptyMessage }) {
             return (
               <tr
                 key={key}
-                className={`border-b border-line align-top ${
-                  interactive ? 'cursor-pointer hover:bg-line' : ''
-                }`}
+                className="border-b border-line align-top"
+                data-interactive={interactive ? 'true' : undefined}
                 onClick={interactive ? () => onRowClick(row) : undefined}
                 onKeyDown={
                   interactive

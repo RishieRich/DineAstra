@@ -27,8 +27,8 @@ import urllib.request
 from pathlib import Path
 
 CHROME = Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
-FRONTEND = "http://127.0.0.1:5173"
-BACKEND = "http://127.0.0.1:8000"
+FRONTEND = "http://localhost:5173"
+BACKEND = "http://localhost:8000"
 DEBUG_PORT = 9222
 
 ROUTES = [
@@ -79,7 +79,13 @@ PROBE = """
     seen.add(id);
     return true;
   });
+  // A route that never loaded has no wide elements and would otherwise
+  // pass. Report whether React actually mounted, so an unreachable dev
+  // server fails the audit instead of clearing it.
+  const root = document.getElementById('root');
   return JSON.stringify({
+    mounted: Boolean(root && root.firstElementChild),
+    url: location.href,
     viewport: de.clientWidth,
     scrollWidth: de.scrollWidth,
     overflows: de.scrollWidth > de.clientWidth,
@@ -196,6 +202,13 @@ async def _audit(width: int, height: int) -> int:
                         failures += 1
                         continue
                     data = json.loads(raw)
+                    if not data.get("mounted"):
+                        failures += 1
+                        print(
+                            f"  FAIL  {label:20} app did not render at "
+                            f"{data.get('url', FRONTEND + path)}"
+                        )
+                        continue
                     if data["overflows"] or data["offenders"]:
                         failures += 1
                         print(
@@ -212,7 +225,7 @@ async def _audit(width: int, height: int) -> int:
 
                 print()
                 print("No screen scrolls horizontally." if not failures
-                      else f"{failures} route(s) overflow at {width}px.")
+                      else f"{failures} route(s) failed at {width}px.")
                 return 1 if failures else 0
         finally:
             chrome.terminate()

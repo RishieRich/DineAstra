@@ -114,7 +114,7 @@ function Overview() {
           <div><p className="eyebrow">The day</p><h3>What the estate traded</h3></div>
           <span>Compared with the same day of the week</span>
         </div>
-        <div className="metric-grid">
+        <div className="metric-grid cascade">
           {data.metrics.map((metric) => (
             <MetricTile
               key={metric.key}
