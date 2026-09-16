@@ -11,6 +11,9 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from agents import narrator
 from ui.backend.routes import ask, banquet, brain, data, operations, overview, system

@@ -264,6 +264,11 @@ def banquet_peer_comparison(event: dict) -> dict:
     }
 
 
+# banquet-policy.md 3.4 -- the covers count above which the complimentary
+# house-pour courtesy is applied automatically to a corporate booking.
+BEVERAGE_COURTESY_COVERS = 80
+
+
 def banquet_cause(event: dict) -> dict | None:
     """Why this event's margin sits where it does, with the policy string
     that explains it. Rule-driven: the conditions below are read off the
@@ -272,7 +277,7 @@ def banquet_cause(event: dict) -> dict | None:
 
     if (
         event["segment"] == "corporate"
-        and event["covers"] > 150
+        and event["covers"] > BEVERAGE_COURTESY_COVERS
         and beverage_share > 6.0
     ):
         citation = _citation("banquet-policy", "3.4")
@@ -280,7 +285,8 @@ def banquet_cause(event: dict) -> dict | None:
             "headline": "Complimentary beverage service applied at the covers threshold.",
             "detail": (
                 f"This event carried {event['covers']} confirmed covers, above the "
-                f"150-cover threshold, so two hours of complimentary house-pour service "
+                f"{BEVERAGE_COURTESY_COVERS}-cover threshold, so two hours of "
+                f"complimentary house-pour service "
                 f"was extended and charged to the event. Beverage cost landed at "
                 f"{fmt.format_percent(beverage_share)} of contracted revenue against a "
                 f"segment norm of four to five per cent."
@@ -368,7 +374,7 @@ def _food_cost_alert(day: str) -> dict | None:
 
     row = repo.daily_property_for(day)
     overshoot_pts = metric.delta
-    daily_impact = round(row["fnb_revenue"] * overshoot_pts / 100) if row else 0
+    daily_impact = round(row["total_revenue"] * overshoot_pts / 100) if row else 0
 
     return {
         "kind": "food_cost",
@@ -379,7 +385,7 @@ def _food_cost_alert(day: str) -> dict | None:
             f"{fmt.format_points(overshoot_pts)} above the standing target."
         ),
         "detail": (
-            f"At the current F&B revenue run rate that is about "
+            f"At the current sales run rate that is about "
             f"{fmt.format_currency(daily_impact)} a day, or roughly "
             f"{fmt.format_compact_currency(daily_impact * 30)} over a month."
         ),
@@ -433,19 +439,40 @@ def overview_alert(day: str) -> dict | None:
 # the Overview payload
 # ---------------------------------------------------------------------------
 
+# The six figures a restaurant operator actually opens the day on. Prime cost
+# is here because food and labour together are the number that decides whether
+# a restaurant makes money; either one alone can look fine while the pair does
+# not. Average spend is here because covers alone say nothing about the till.
 OVERVIEW_METRIC_KEYS = [
     "total_revenue",
-    "fnb_revenue",
+    "covers",
+    "average_order_value",
     "food_cost_pct",
+    "prime_cost_pct",
     "gop_pct",
+]
+
+# A second row, shown under the first: the channel and estate figures that
+# explain the six above rather than repeat them.
+OVERVIEW_SECONDARY_KEYS = [
+    "delivery_mix_pct",
+    "table_turns",
+    "sales_per_seat",
+    "labor_cost_pct",
     "checklist_signoff_pct",
     "banquet_event_count",
 ]
 
 
-def overview(day: str) -> dict:
+def overview(day: str, window_days: int = 30) -> dict:
     row = repo.daily_property_for(day)
-    hero = registry.compute("trailing_30_total_revenue", day)
+    window_rows = repo.daily_property_range(day, days=window_days)
+    # The headline is the day's own trade, not a window total. A restaurant
+    # operator opens the morning asking what last night did, and a thirty-day
+    # aggregate in crores answers a question nobody asked. The window total is
+    # still reported, as context beneath it.
+    hero = registry.compute("total_revenue", day)
+    period = registry.compute("trailing_30_total_revenue", day, window_days=window_days)
     corporate = registry.compute("corporate_avg_margin_pct", day)
     events_today = repo.banquets_for_date(day)
 
@@ -457,9 +484,23 @@ def overview(day: str) -> dict:
         "hero": {
             "value": hero.value,
             "formatted": hero.formatted,
-            "exact_formatted": hero.context.get("exact"),
-            "label": hero.label,
+            "exact_formatted": hero.formatted,
+            "label": "Net sales",
+            "sublabel": (
+                f"{row['day_of_week']}, {fmt.format_date_long(day)}" if row else fmt.format_date_long(day)
+            ),
+            "delta": hero.delta,
+            "delta_formatted": hero.delta_formatted,
+            "delta_direction": hero.delta_direction,
+            "delta_label": hero.delta_label,
             "provenance": hero.provenance.to_dict(),
+        },
+        "period": {
+            "value": period.value,
+            "formatted": period.formatted,
+            "exact_formatted": period.context.get("exact"),
+            "label": period.label,
+            "provenance": period.provenance.to_dict(),
         },
         "metrics": [m.to_dict() for m in registry.compute_many(OVERVIEW_METRIC_KEYS, day)],
         "alert": overview_alert(day),
@@ -476,6 +517,30 @@ def overview(day: str) -> dict:
             for e in events_today
         ],
         "corporate_margin": corporate.to_dict(),
+        "window_days": window_days,
+        # One point per trading day. Everything the charts draw is here, so a
+        # chart never computes a figure of its own.
+        "trend": [
+            {
+                "date": item["date"],
+                "day_of_week": item["day_of_week"],
+                "total_revenue": item["total_revenue"],
+                "dine_in_revenue": item.get("dine_in_revenue") or 0,
+                "delivery_revenue": item.get("delivery_revenue") or 0,
+                "events_revenue": item.get("events_revenue") or 0,
+                "covers": item.get("covers") or 0,
+                "average_order_value": item.get("average_order_value") or 0,
+                "food_cost_pct": item["food_cost_pct"],
+                "labor_cost_pct": item.get("labor_cost_pct") or 0,
+                "prime_cost_pct": item.get("prime_cost_pct") or 0,
+                "gop_pct": item["gop_pct"],
+            }
+            for item in window_rows
+        ],
+        "food_cost_target_pct": registry.FOOD_COST_TARGET_PCT,
+        "secondary_metrics": [
+            m.to_dict() for m in registry.compute_many(OVERVIEW_SECONDARY_KEYS, day)
+        ],
         "digest": whatsapp_digest(day),
         "mode": "sample + uploaded data",
     }
@@ -491,16 +556,26 @@ def whatsapp_digest(day: str) -> dict:
     if row is None:
         return {"text": "Is date ka data available nahi hai.", "lines": []}
 
-    metrics = {m.key: m for m in registry.compute_many(OVERVIEW_METRIC_KEYS, day)}
+    metrics = {
+        m.key: m
+        for m in registry.compute_many(
+            OVERVIEW_METRIC_KEYS + ["checklist_signoff_pct"], day
+        )
+    }
     alert = overview_alert(day)
 
     lines = [
         f"DineAstra daily update, {fmt.format_date_long(day)}",
         "",
-        f"Total revenue {metrics['total_revenue'].formatted} hua, jisme F&B {metrics['fnb_revenue'].formatted} hai.",
-        f"GOP margin {metrics['gop_pct'].formatted} aur food cost {metrics['food_cost_pct'].formatted} par hai.",
-        f"Daily standards sign-off {metrics['checklist_signoff_pct'].formatted} raha.",
+        f"Net sales {metrics['total_revenue'].formatted} hui, {metrics['covers'].formatted} covers par, "
+        f"average spend {metrics['average_order_value'].formatted}.",
+        f"Prime cost {metrics['prime_cost_pct'].formatted} hai, jisme food cost {metrics['food_cost_pct'].formatted}. "
+        f"Operating margin {metrics['gop_pct'].formatted} par hai.",
     ]
+
+    lines.append(
+        f"Daily standards sign-off {metrics['checklist_signoff_pct'].formatted} raha."
+    )
 
     if alert:
         lines += ["", f"Dhyaan dene wali baat: {alert['headline']}"]

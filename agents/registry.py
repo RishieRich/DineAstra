@@ -26,11 +26,13 @@ FOOD_COST_TARGET_PCT = 31.0  # fnb-cost-policy.md 2.1
 FOOD_COST_ESCALATION_PTS = 2.0  # fnb-cost-policy.md 2.2
 REQUISITION_VARIANCE_PCT = 40.0  # expense-policy.md 4.1
 # banquet-policy.md 3.1 -- one floor per segment, not one house number.
+# A corporate dinner and a birthday are not the same trade and cannot be
+# held to the same margin.
 SEGMENT_MARGIN_FLOORS = {
     "corporate": 60.0,
-    "mice": 48.0,
+    "group": 48.0,
     "wedding": 42.0,
-    "social": 40.0,
+    "celebration": 40.0,
 }
 CORPORATE_MARGIN_FLOOR_PCT = SEGMENT_MARGIN_FLOORS["corporate"]
 
@@ -61,7 +63,7 @@ class MetricResult:
     label: str
     value: float | int | None
     formatted: str
-    unit: str  # currency | percent | points | count
+    unit: str  # currency | percent | points | count | ratio
     provenance: Provenance
     delta: float | None = None
     delta_formatted: str | None = None
@@ -80,6 +82,9 @@ class MetricContext:
     """Everything a compute function is allowed to depend on."""
 
     day: date
+    # The trailing window a window-based metric reports over. Only the metrics
+    # that describe a span read it; a single-day metric ignores it.
+    window_days: int = 30
 
     @property
     def day_iso(self) -> str:
@@ -115,6 +120,23 @@ def _missing(key: str, label: str, unit: str, ctx: MetricContext) -> MetricResul
         )
 
 
+def _round1(value: float) -> float:
+    return round(value + 1e-9, 1)
+
+
+def _source_of(rows: list[dict], seeded_file: str = "daily_property.json") -> str:
+    """Name every file the given rows were actually read from.
+
+    A seeded row reads from the generated dataset; a row an operator loaded
+    reads from Data Studio. One window can span both, and the provenance line
+    has to say so rather than pick whichever is more convenient.
+    """
+    uploaded = sorted({row["source"] for row in rows if row.get("source")})
+    seeded = any(not row.get("source") for row in rows)
+    names = ([seeded_file] if seeded or not uploaded else []) + uploaded
+    return " + ".join(names)
+
+
 def _direction(delta: float | None, higher_is_better: bool = True) -> str | None:
     if delta is None or abs(delta) < 1e-9:
         return "flat"
@@ -138,7 +160,12 @@ def _daily_metric(
         if row is None:
             return _missing(key, label, unit, ctx)
 
-        value = row[field_name]
+        value = row.get(field_name)
+        if value is None:
+            # The day exists but nobody stated this figure -- a Data Studio
+            # outlet sheet states the day's trade but not the seat count.
+            # Report it as absent rather than inventing a zero.
+            return _missing(key, label, unit, ctx)
         # Like-for-like baseline. This property runs Monday-Thursday heavy, so
         # comparing a Monday against a blended thirty-day mean would report a
         # swing that is really just the shape of the week. Weekdays are
@@ -147,7 +174,7 @@ def _daily_metric(
         baseline_rows = [
             r
             for r in repo.daily_property_trailing(ctx.day, days=30)
-            if r["day_of_week"] in same_day_type
+            if r["day_of_week"] in same_day_type and r.get(field_name) is not None
         ]
         baseline = (
             statistics.mean(r[field_name] for r in baseline_rows)
@@ -167,6 +194,11 @@ def _daily_metric(
         elif unit == "percent":
             formatted = fmt.format_percent(value, decimals)
             delta_formatted = fmt.format_points(delta, decimals) if delta is not None else None
+        elif unit == "ratio":
+            formatted = fmt.format_ratio(value)
+            delta_formatted = (
+                f"{'+' if delta > 0 else ''}{delta:.2f}" if delta is not None else None
+            )
         else:
             formatted = fmt.format_number(value)
             delta_formatted = (
@@ -182,7 +214,10 @@ def _daily_metric(
             formatted=formatted,
             unit=unit,
             provenance=Provenance(
-                source="daily_property.json",
+                # Name the file the figure actually came from. A day an
+                # operator uploaded should say so, not borrow the seeded
+                # dataset's name.
+                source=row.get("source") or "daily_property.json",
                 window=fmt.format_date_long(ctx.day_iso),
                 note=f"compared with {len(baseline_rows)} {baseline_label} days in the trailing 30"
                 if baseline_rows
@@ -206,20 +241,27 @@ def _daily_metric(
 
 
 def _compute_trailing_30_revenue(ctx: MetricContext) -> MetricResult:
-    rows = repo.daily_property_range(ctx.day, days=30)
+    """Revenue across the trailing window. Thirty days unless asked otherwise.
+
+    The Overview headline lets the reader change the window, so the span is a
+    context parameter rather than a constant -- but the figure is still
+    computed here, and still carries the provenance of the rows it summed.
+    """
+    label = f"Net sales, trailing {ctx.window_days} days"
+    rows = repo.daily_property_range(ctx.day, days=ctx.window_days)
     if not rows:
-        return _missing("trailing_30_total_revenue", "Total revenue, trailing 30 days", "currency", ctx)
+        return _missing("trailing_30_total_revenue", label, "currency", ctx)
     total = sum(r["total_revenue"] for r in rows)
     return MetricResult(
         key="trailing_30_total_revenue",
-        label="Total revenue, trailing 30 days",
+        label=label,
         value=total,
         formatted=fmt.format_compact_currency(total),
         unit="currency",
         provenance=Provenance(
-            source="daily_property.json",
+            source=_source_of(rows),
             window=f"{fmt.format_date_long(rows[0]['date'])} to {fmt.format_date_long(rows[-1]['date'])}",
-            note=f"{len(rows)} days of room, F&B and other revenue",
+            note=f"{len(rows)} trading days of dining room, delivery and event sales",
         ),
         context={"days": len(rows), "exact": fmt.format_currency(total)},
     )
@@ -238,7 +280,7 @@ def _compute_trailing_7_food_cost(ctx: MetricContext) -> MetricResult:
         formatted=fmt.format_percent(value),
         unit="percent",
         provenance=Provenance(
-            source="daily_property.json",
+            source=_source_of(rows),
             window=f"{fmt.format_date_long(rows[0]['date'])} to {fmt.format_date_long(rows[-1]['date'])}",
             note="compared with the 31.0% standing target in fnb-cost-policy.md 2.1",
         ),
@@ -266,7 +308,7 @@ def _compute_food_cost_vs_target(ctx: MetricContext) -> MetricResult:
         formatted=fmt.format_points(delta),
         unit="points",
         provenance=Provenance(
-            source="daily_property.json",
+            source=_source_of([row]),
             window=fmt.format_date_long(ctx.day_iso),
             note="standing target 31.0% per fnb-cost-policy.md 2.1",
         ),
@@ -275,29 +317,47 @@ def _compute_food_cost_vs_target(ctx: MetricContext) -> MetricResult:
     )
 
 
-def _compute_weekday_occupancy_gap(ctx: MetricContext) -> MetricResult:
+def _compute_weekend_sales_premium(ctx: MetricContext) -> MetricResult:
+    """How much busier Friday to Sunday is than Monday to Thursday.
+
+    This is the shape the whole estate is staffed and prepped against, and it
+    runs the opposite way to a corporate hotel's. It is reported as a
+    percentage premium rather than a rupee gap so it stays readable as the
+    business grows.
+    """
     rows = repo.daily_property_range(ctx.day, days=28)
+    key = "weekend_sales_premium_pts"
+    label = "Weekend premium"
     if not rows:
-        return _missing("weekday_occupancy_gap_pts", "Weekday occupancy premium", "points", ctx)
-    weekday = [r["occupancy_pct"] for r in rows if r["day_of_week"] in WEEKDAYS]
-    weekend = [r["occupancy_pct"] for r in rows if r["day_of_week"] in WEEKEND]
-    if not weekday or not weekend:
-        return _missing("weekday_occupancy_gap_pts", "Weekday occupancy premium", "points", ctx)
-    gap = round(statistics.mean(weekday) - statistics.mean(weekend), 1)
+        return _missing(key, label, "percent", ctx)
+
+    weekend = [r["total_revenue"] for r in rows if r["day_of_week"] in WEEKEND]
+    weekday = [r["total_revenue"] for r in rows if r["day_of_week"] in WEEKDAYS]
+    if not weekend or not weekday:
+        return _missing(key, label, "percent", ctx)
+
+    weekend_mean = statistics.mean(weekend)
+    weekday_mean = statistics.mean(weekday)
+    premium = _round1(weekend_mean / weekday_mean * 100 - 100)
     return MetricResult(
-        key="weekday_occupancy_gap_pts",
-        label="Weekday occupancy premium",
-        value=gap,
-        formatted=fmt.format_points(gap),
-        unit="points",
+        key=key,
+        label=label,
+        value=premium,
+        formatted=fmt.format_percent(premium),
+        unit="percent",
         provenance=Provenance(
-            source="daily_property.json",
+            source=_source_of(rows),
             window=f"{fmt.format_date_long(rows[0]['date'])} to {fmt.format_date_long(rows[-1]['date'])}",
-            note=f"Monday-Thursday mean against Friday-Sunday mean, {len(rows)} days",
+            note=(
+                f"{len(weekend)} Friday to Sunday days against "
+                f"{len(weekday)} Monday to Thursday days"
+            ),
         ),
         context={
-            "weekday_mean": round(statistics.mean(weekday), 1),
-            "weekend_mean": round(statistics.mean(weekend), 1),
+            "weekend_mean": round(weekend_mean),
+            "weekday_mean": round(weekday_mean),
+            "weekend_days": len(weekend),
+            "weekday_days": len(weekday),
         },
     )
 
@@ -306,12 +366,12 @@ def _compute_banquet_event_count(ctx: MetricContext) -> MetricResult:
     events = [e for e in repo.banquets_all() if e["date"] <= ctx.day_iso]
     return MetricResult(
         key="banquet_event_count",
-        label="Banquet events held",
+        label="Private events held",
         value=len(events),
         formatted=fmt.format_count(len(events), "event"),
         unit="count",
         provenance=Provenance(
-            source="banquets.json",
+            source=_source_of(events, "banquets.json"),
             window=f"up to {fmt.format_date_long(ctx.day_iso)}",
         ),
         context={"segments": sorted({e["segment"] for e in events})},
@@ -323,12 +383,12 @@ def _compute_banquet_revenue_total(ctx: MetricContext) -> MetricResult:
     total = sum(e["revenue"] for e in events)
     return MetricResult(
         key="banquet_revenue_total",
-        label="Banquet revenue",
+        label="Private dining sales",
         value=total,
         formatted=fmt.format_compact_currency(total),
         unit="currency",
         provenance=Provenance(
-            source="banquets.json",
+            source=_source_of(events, "banquets.json"),
             window=f"{len(events)} events up to {fmt.format_date_long(ctx.day_iso)}",
         ),
         context={"exact": fmt.format_currency(total)},
@@ -338,16 +398,16 @@ def _compute_banquet_revenue_total(ctx: MetricContext) -> MetricResult:
 def _compute_banquet_avg_margin(ctx: MetricContext) -> MetricResult:
     events = [e for e in repo.banquets_all() if e["date"] <= ctx.day_iso]
     if not events:
-        return _missing("banquet_avg_margin_pct", "Banquet margin, all segments", "percent", ctx)
+        return _missing("banquet_avg_margin_pct", "Event margin, all segments", "percent", ctx)
     value = round(statistics.mean(e["margin_pct"] for e in events), 1)
     return MetricResult(
         key="banquet_avg_margin_pct",
-        label="Banquet margin, all segments",
+        label="Event margin, all segments",
         value=value,
         formatted=fmt.format_percent(value),
         unit="percent",
         provenance=Provenance(
-            source="banquets.json",
+            source=_source_of(events, "banquets.json"),
             window=f"{len(events)} events up to {fmt.format_date_long(ctx.day_iso)}",
             note="weighted equally per event per banquet-policy.md 5",
         ),
@@ -374,7 +434,7 @@ def _segment_margin_metric(segment: str, label: str, key: str):
             formatted=fmt.format_percent(value),
             unit="percent",
             provenance=Provenance(
-                source="banquets.json",
+                source=_source_of(events, "banquets.json"),
                 window=f"{len(events)} {segment} events up to {fmt.format_date_long(ctx.day_iso)}",
                 note="weighted equally per event per banquet-policy.md 5",
             ),
@@ -399,18 +459,18 @@ def _compute_checklist_signoff(ctx: MetricContext) -> MetricResult:
     the 95% owner reporting threshold."""
     row = repo.daily_property_for(ctx.day)
     if row is None:
-        return _missing("checklist_signoff_pct", "Brand standard sign-off", "percent", ctx)
+        return _missing("checklist_signoff_pct", "Standards sign-off", "percent", ctx)
 
     value = row["checklist_signoff_pct"]
     delta = round(value - CHECKLIST_TARGET_PCT, 1)
     return MetricResult(
         key="checklist_signoff_pct",
-        label="Brand standard sign-off",
+        label="Standards sign-off",
         value=value,
         formatted=fmt.format_percent(value),
         unit="percent",
         provenance=Provenance(
-            source="daily_property.json",
+            source=_source_of([row]),
             window=fmt.format_date_long(ctx.day_iso),
             note=(
                 f"{row['checklist_tasks_signed_off']} of "
@@ -436,6 +496,7 @@ def _compute_requisition_variance_count(ctx: MetricContext) -> MetricResult:
     from ui.backend import analysis  # local import: analysis imports formatting
 
     pairs = analysis.variance_pairs_for_date(ctx.day_iso)
+    day_rows = repo.submissions_for_date(ctx.day_iso)
     return MetricResult(
         key="requisition_variance_count",
         label="Requisitions held for variance review",
@@ -443,7 +504,7 @@ def _compute_requisition_variance_count(ctx: MetricContext) -> MetricResult:
         formatted=fmt.format_count(len(pairs), "item"),
         unit="count",
         provenance=Provenance(
-            source="submissions.json",
+            source=_source_of(day_rows, "submissions.json"),
             window=fmt.format_date_long(ctx.day_iso),
             note=f"same-item unit-rate variance above {fmt.format_percent(REQUISITION_VARIANCE_PCT, 0)} per expense-policy.md 4.1",
         ),
@@ -462,18 +523,21 @@ def _register(metric: Metric) -> None:
     METRICS[metric.key] = metric
 
 
+# The eleven figures read straight off one trading day. `higher_is_better`
+# decides which way an arrow points, so a rising food cost reads as bad and a
+# rising average spend reads as good.
 for _spec in (
-    ("occupancy_pct", "Occupancy", "occupancy_pct", "percent", True, "Rooms sold against rooms available."),
-    ("adr", "ADR", "adr", "currency", True, "Average daily rate across sold rooms."),
-    ("revpar", "RevPAR", "revpar", "currency", True, "Revenue per available room."),
-    ("rooms_sold", "Rooms sold", "rooms_sold", "count", True, "Rooms sold on the day."),
-    ("room_revenue", "Room revenue", "room_revenue", "currency", True, "Rooms revenue on the day."),
-    ("fnb_revenue", "F&B revenue", "fnb_revenue", "currency", True, "Food and beverage revenue on the day."),
-    ("total_revenue", "Total revenue", "total_revenue", "currency", True, "All revenue lines on the day."),
-    ("gop_amount", "Gross operating profit", "gop_amount", "currency", True, "Revenue less direct cost."),
-    ("gop_pct", "GOP margin", "gop_pct", "percent", True, "Gross operating profit as a share of revenue."),
-    ("food_cost_pct", "Food cost", "food_cost_pct", "percent", False, "Food cost as a share of F&B revenue."),
-    ("labor_cost_pct", "Labour cost", "labor_cost_pct", "percent", False, "Labour cost as a share of room and F&B revenue."),
+    ("total_revenue", "Net sales", "total_revenue", "currency", True, "Every sales line on the day: dining room, delivery and private events."),
+    ("covers", "Covers", "covers", "count", True, "Guests served in the dining rooms."),
+    ("average_order_value", "Average spend", "average_order_value", "currency", True, "Net sales per cover."),
+    ("dine_in_revenue", "Dining room sales", "dine_in_revenue", "currency", True, "Sales taken across the three dining rooms."),
+    ("delivery_mix_pct", "Delivery share", "delivery_mix_pct", "percent", False, "Delivery as a share of net sales; it earns less per rupee than the dining room."),
+    ("food_cost_pct", "Food cost", "food_cost_pct", "percent", False, "Food cost as a share of net sales."),
+    ("labor_cost_pct", "Labour cost", "labor_cost_pct", "percent", False, "Labour cost as a share of net sales."),
+    ("prime_cost_pct", "Prime cost", "prime_cost_pct", "percent", False, "Food plus labour: the number a restaurant lives or dies by."),
+    ("gop_pct", "Operating margin", "gop_pct", "percent", True, "What is left after prime cost and overhead."),
+    ("sales_per_seat", "Sales per seat", "sales_per_seat", "currency", True, "Dining room sales divided by the 250 seats in the estate."),
+    ("table_turns", "Table turns", "table_turns", "ratio", True, "Covers divided by seats: how many times the estate filled."),
 ):
     _key, _label, _field, _unit, _higher, _desc = _spec
     _register(
@@ -486,40 +550,45 @@ for _spec in (
         )
     )
 
-_register(Metric("trailing_30_total_revenue", "Total revenue, trailing 30 days", "currency",
-                 "Thirty-day revenue, the Overview headline figure.", _compute_trailing_30_revenue))
+_register(Metric("trailing_30_total_revenue", "Net sales, trailing window", "currency",
+                 "Net sales across the reporting window the reader has chosen.", _compute_trailing_30_revenue))
 _register(Metric("trailing_7_food_cost_pct", "Food cost, trailing 7 days", "percent",
                  "Seven-day food cost average against the standing target.", _compute_trailing_7_food_cost))
 _register(Metric("food_cost_vs_target_pts", "Food cost against target", "points",
                  "Percentage points above or below the 31% standing target.", _compute_food_cost_vs_target))
-_register(Metric("weekday_occupancy_gap_pts", "Weekday occupancy premium", "points",
-                 "Monday-Thursday occupancy against Friday-Sunday.", _compute_weekday_occupancy_gap))
-_register(Metric("banquet_event_count", "Banquet events held", "count",
-                 "Count of banquet events in the dataset to date.", _compute_banquet_event_count))
-_register(Metric("banquet_revenue_total", "Banquet revenue", "currency",
-                 "Contracted banquet revenue to date.", _compute_banquet_revenue_total))
-_register(Metric("banquet_avg_margin_pct", "Banquet margin, all segments", "percent",
+_register(Metric("weekend_sales_premium_pts", "Weekend premium", "percent",
+                 "How much busier Friday to Sunday is than Monday to Thursday.",
+                 _compute_weekend_sales_premium))
+_register(Metric("banquet_event_count", "Private events held", "count",
+                 "Private dining and event bookings to date.", _compute_banquet_event_count))
+_register(Metric("banquet_revenue_total", "Private dining sales", "currency",
+                 "Contracted private dining and event revenue to date.", _compute_banquet_revenue_total))
+_register(Metric("banquet_avg_margin_pct", "Event margin, all segments", "percent",
                  "Event margin across every segment.", _compute_banquet_avg_margin))
-_register(Metric("corporate_avg_margin_pct", "Corporate banquet margin", "percent",
+_register(Metric("corporate_avg_margin_pct", "Corporate event margin", "percent",
                  "Peer average margin across corporate events.",
-                 _segment_margin_metric("corporate", "Corporate banquet margin", "corporate_avg_margin_pct")))
-_register(Metric("checklist_signoff_pct", "Brand standard sign-off", "percent",
-                 "Share of the 34 daily tasks signed off in the daily log.",
+                 _segment_margin_metric("corporate", "Corporate event margin", "corporate_avg_margin_pct")))
+_register(Metric("checklist_signoff_pct", "Standards sign-off", "percent",
+                 "Share of the 34 daily tasks signed off across the estate.",
                  _compute_checklist_signoff))
 _register(Metric("requisition_variance_count", "Requisitions held for variance review", "count",
                  "Same-item requisition pairs above the 40% variance rule.", _compute_requisition_variance_count))
 
 
-def compute(key: str, day: date | str) -> MetricResult:
+def compute(key: str, day: date | str, window_days: int = 30) -> MetricResult:
     """Compute one metric by key."""
     metric = METRICS.get(key)
     if metric is None:
         raise KeyError(f"unknown metric: {key}")
-    return metric.compute(MetricContext(day=repo.parse_date(day)))
+    return metric.compute(
+        MetricContext(day=repo.parse_date(day), window_days=window_days)
+    )
 
 
-def compute_many(keys: list[str], day: date | str) -> list[MetricResult]:
-    return [compute(key, day) for key in keys]
+def compute_many(
+    keys: list[str], day: date | str, window_days: int = 30
+) -> list[MetricResult]:
+    return [compute(key, day, window_days=window_days) for key in keys]
 
 
 def catalogue() -> list[dict]:

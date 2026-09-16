@@ -1,14 +1,13 @@
-# Handoff
+# Legacy handoff
 
-Everything needed to pick this up cold. Written 16 September 2026, at commit
-`e138b0c`, with `main` pushed to https://github.com/RishieRich/DineAstra and
-the working tree clean.
+This architecture note is retained for history. For current continuation
+instructions, use `CLAUDE_HANDOVER.md` and `IMPLEMENTATION_CHECKLIST.md`.
 
 ---
 
 ## 1. What this is
 
-**DineAstra** (built under the internal name *Darpan*, which still appears in
+**DineAstra** (originally scaffolded under the internal name *Darpan*, with
 the code, the API and the demo credentials) is a daily operating briefing for
 a hotel/restaurant general manager. The product claim it is built around:
 
@@ -32,7 +31,7 @@ Two terminals, repository root. Nothing to configure.
 cd ui/frontend && npm run dev
 ```
 
-http://localhost:5173 — sign in `owner@darpan.demo` / `darpan`
+http://localhost:5173 — sign in `owner@dineastra.demo` / `dineastra`
 (the login card also has a "continue instantly" demo button).
 
 First time on a new machine:
@@ -122,17 +121,26 @@ data/
 The demo's whole story depends on these exact numbers. `scripts/seed_data.py`
 asserts most of them at generation time so drift fails loudly.
 
+> **Rebuilt as a restaurant group.** The dataset below was a 180-room hotel
+> until the DineAstra data pass; occupancy, ADR and RevPAR are gone. The
+> anomalies and their documents survived the change intact.
+
 | Fact | Value |
 | --- | --- |
+| The estate | **Astra House Group**, 4 outlets in Bengaluru, **250 seats** |
 | Simulated "today" | **2026-09-14** (fixed; never `date.today()`) |
 | Dataset | 120 days, 2026-05-18 → 2026-09-14 |
-| Occupancy shape | Mon–Thu ~78% vs Fri–Sun ~61% (corporate-driven property) |
+| Trading shape | Fri–Sun ~655 covers vs Mon–Thu ~448 — **weekend-led**, the opposite of a corporate hotel |
+| Weekend premium | **+62.2%** on sales, asserted at generation time |
+| Delivery mix drift | **17.5% → 23.5%** across the window; the second planted story |
+| Anchor-day sales | **₹7,24,455** across 470 covers, average spend ₹1,173 |
 | Food cost step | 31.0% → 34.5% on **16 August**, caused by a documented vendor rate revision |
 | The flagged event | **BQ-2026-018**, margin exactly **55.6** |
 | Corporate peer average | exactly **61.2** across **six** corporate events |
+| Event segments | `corporate` / `wedding` / `celebration` / `group`, floors 60 / 42 / 40 / 48 |
 | The contrast pair | **SUB-004182** (₹58) vs **SUB-004183** (₹97), same item, same day |
 | Brand standard §4.2 | **34 tasks across 6 departments**, last verified **11 September 2026** |
-| Checklist sign-off today | 33 of 34 = **97.1%** |
+| Checklist sign-off today | 33 of 34 = **97.1%** (pinned in the generator) |
 | Metric count | **21** — keep it at 21 if you add one, drop one |
 
 Each planted anomaly has its cause written into a policy document in

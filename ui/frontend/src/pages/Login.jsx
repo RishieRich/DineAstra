@@ -7,7 +7,7 @@ function Login() {
   const { signIn } = useSession()
   const navigate = useNavigate()
   const location = useLocation()
-  const [email, setEmail] = useState('owner@darpan.demo')
+  const [email, setEmail] = useState('owner@dineastra.demo')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -107,7 +107,7 @@ function Login() {
             type="button"
             disabled={busy}
             className="demo-button"
-            onClick={() => submit({ email: 'owner@darpan.demo', password: 'darpan' })}
+            onClick={() => submit({ email: 'owner@dineastra.demo', password: 'dineastra' })}
           >
             Explore with sample data
           </button>

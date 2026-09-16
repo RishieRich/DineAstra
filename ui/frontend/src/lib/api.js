@@ -5,8 +5,8 @@
  * host or port written down anywhere in the frontend.
  */
 
-const TOKEN_KEY = 'darpan.token'
-const USER_KEY = 'darpan.user'
+const TOKEN_KEY = 'dineastra.token'
+const USER_KEY = 'dineastra.user'
 
 export function readStoredSession() {
   try {
@@ -78,8 +78,11 @@ export const api = {
   login: (email, password) =>
     request('/api/auth/login', { method: 'POST', body: { email, password } }),
   health: () => request('/api/health'),
-  overview: (token, date) =>
-    request(`/api/overview${date ? `?date=${date}` : ''}`, { token }),
+  overview: (token, date, windowDays = 30) => {
+    const params = new URLSearchParams({ window_days: String(windowDays) })
+    if (date) params.set('date', date)
+    return request(`/api/overview?${params.toString()}`, { token })
+  },
   banquetEvents: (token, segment) =>
     request(`/api/banquet/events${segment ? `?segment=${segment}` : ''}`, { token }),
   banquetEvent: (token, eventId) =>
@@ -107,6 +110,43 @@ export const api = {
   dataUpload: (token, file) => upload('/api/data/upload', file, token),
   dataQuickEntry: (token, body) =>
     request('/api/data/quick-entry', { method: 'POST', token, body }),
+  dataReset: (token, confirmation) =>
+    request('/api/data/reset', { method: 'POST', token, body: { confirmation } }),
+  dataRejectReport: (token, batchId) =>
+    download(`/api/data/rejects/${batchId}`, token, `${batchId}-rejected-rows.csv`),
+}
+
+/**
+ * Fetch a file the API will only hand over to a signed-in reader and save it.
+ *
+ * The reject report needs the bearer token, so it cannot be a plain download
+ * link -- the browser would send the request without the header and get a 401.
+ */
+async function download(path, token, filename) {
+  let response
+  try {
+    response = await fetch(path, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  } catch {
+    throw new ApiError('The DineAstra API is not answering.', 0)
+  }
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null)
+    throw new ApiError(
+      (payload && payload.detail) || 'That report is no longer available.',
+      response.status,
+    )
+  }
+
+  const url = URL.createObjectURL(await response.blob())
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  URL.revokeObjectURL(url)
 }
 
 /** Multipart upload: no JSON content type, the browser sets the boundary. */

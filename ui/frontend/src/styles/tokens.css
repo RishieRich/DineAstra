@@ -8,18 +8,18 @@
 
 :root {
   /* Colour */
-  --color-burgundy: #651d37;
-  --color-burgundy-deep: #2b0b1d;
-  --color-burgundy-mid: #43102b;
-  --color-burgundy-soft: #f3e8ed;
-  --color-gold: #d4a846;
-  --color-gold-bright: #f1d88a;
-  --color-gold-soft: #ead9af;
-  --color-ink: #21171b;
-  --color-paper: #fbf8f4;
+  --color-burgundy: #4b3b82;
+  --color-burgundy-deep: #17142f;
+  --color-burgundy-mid: #28204f;
+  --color-burgundy-soft: #efecf8;
+  --color-gold: #cba85b;
+  --color-gold-bright: #f0d991;
+  --color-gold-soft: #ded3b5;
+  --color-ink: #1d1b26;
+  --color-paper: #f8f7fb;
   --color-surface: #ffffff;
-  --color-line: #e8ded7;
-  --color-muted: #756970;
+  --color-line: #e2deea;
+  --color-muted: #6e6a78;
   --color-positive: #22715d;
   --color-positive-soft: #e5f3ee;
   --color-negative: #a63e43;
@@ -29,9 +29,38 @@
   --color-info: #3f5f88;
   --color-info-soft: #e8eef7;
 
-  /* Type */
-  --font-serif: 'Fraunces', Georgia, serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
+  /* Chart series.
+   *
+   * A fixed order, assigned by identity and never cycled: dine-in is always
+   * indigo, delivery always gold, events always green, whichever of them a
+   * given day happens to have. Validated for colour-vision deficiency -- the
+   * worst adjacent pair separates by dE 10.4 (protan) and 20.4 at normal
+   * vision. The gold sits below 3:1 against the surface, so every series
+   * carries a written total in the legend rather than relying on its colour.
+   */
+  --chart-1: #6f5cc9;  /* dine-in */
+  --chart-2: #c9902f;  /* delivery */
+  --chart-3: #1f8f70;  /* private events */
+  --chart-grid: #ece9f3;
+  --chart-axis: #b9b3c7;
+
+  /* Type.
+   *
+   * One scale, used everywhere. Steps are close together on purpose: a
+   * dashboard read every morning should be quiet, and a figure earns
+   * emphasis from weight and colour before it earns it from size.
+   */
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Manrope', system-ui, sans-serif;
+
+  --text-xs: 0.75rem;     /* 12px - metadata, provenance */
+  --text-sm: 0.8125rem;   /* 13px - secondary labels */
+  --text-base: 0.875rem;  /* 14px - interface default */
+  --text-md: 1rem;        /* 16px - body copy */
+  --text-lg: 1.25rem;     /* 20px - card headings */
+  --text-xl: 1.75rem;     /* 28px - section titles */
+  --text-2xl: 2.25rem;    /* 36px - page title */
+  --text-hero: 2.75rem;   /* 44px - the one figure per screen that leads */
 
   /* Space */
   --space-xs: 0.25rem;
@@ -46,7 +75,7 @@
   --radius-lg: 1.25rem;
 
   /* Elevation */
-  --shadow-soft: 0 14px 34px rgba(43, 11, 29, 0.09);
-  --shadow-card: 0 8px 24px rgba(43, 11, 29, 0.07);
-  --shadow-button: 0 8px 18px rgba(43, 11, 29, 0.2);
+  --shadow-soft: 0 16px 38px rgba(23, 20, 47, 0.11);
+  --shadow-card: 0 8px 24px rgba(23, 20, 47, 0.075);
+  --shadow-button: 0 8px 18px rgba(23, 20, 47, 0.22);
 }

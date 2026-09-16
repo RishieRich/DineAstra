@@ -49,7 +49,7 @@ RULES: list[tuple[str, str, tuple[tuple[str, ...], ...]]] = [
         "segment_comparison",
         "metric",
         (
-            ("segment", "corporate", "wedding", "social", "mice"),
+            ("segment", "corporate", "wedding", "celebration", "group"),
             ("least", "most", "compare", "worst", "best", "earns", "lowest", "highest"),
         ),
     ),
@@ -65,9 +65,9 @@ RULES: list[tuple[str, str, tuple[tuple[str, ...], ...]]] = [
         (("checklist", "daily task", "brand standard", "every department", "departments do"),),
     ),
     (
-        "occupancy",
+        "covers",
         "metric",
-        (("occupancy", "rooms sold", "how full"),),
+        (("covers", "how busy", "how many guests", "footfall", "guest count"),),
     ),
 ]
 
@@ -90,7 +90,7 @@ def detect_language(question: str) -> str:
 
 
 def route(question: str) -> Route | None:
-    """Return a Route, or None when Darpan should refuse."""
+    """Return a Route, or None when DineAstra should refuse."""
     lowered = question.lower()
     params: dict = {}
 
@@ -114,8 +114,8 @@ def route(question: str) -> Route | None:
 
     for intent, agent, term_groups in RULES:
         if all(any(term in lowered for term in group) for group in term_groups):
-            if intent == "occupancy" and language == "gu-latn":
-                intent = "occupancy_gu"
+            if intent == "covers" and language == "gu-latn":
+                intent = "covers_gu"
             if intent == "banquet_margin" and "event_id" not in params:
                 params["event_id"] = _worst_event_id(params["date"])
             return Route(intent, agent, params, matched_on=", ".join(term_groups[0][:2]))

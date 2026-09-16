@@ -14,12 +14,12 @@ def test_checklist_matches_a_hand_count_of_the_document():
     assert built.task_count == 34
     assert built.department_count == 6
     assert [d.name for d in built.departments] == [
-        "Housekeeping",
-        "Front Office",
-        "Food & Beverage Service",
-        "Kitchen & Stewarding",
-        "Banquets & Events",
-        "Engineering & Maintenance",
+        "Kitchen",
+        "Service & Floor",
+        "Bar & Beverage",
+        "Host & Reservations",
+        "Delivery & Packaging",
+        "Facilities & Safety",
     ]
     # task numbering is contiguous across departments, as the document writes it
     numbers = [t.number for d in built.departments for t in d.tasks]

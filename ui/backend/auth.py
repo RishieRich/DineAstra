@@ -21,8 +21,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ui.backend import repository as repo
 
-DEMO_SALT = "darpan-demo-2026"
-SECRET = os.getenv("DARPAN_SECRET", "darpan-demo-secret-not-for-production")
+DEMO_SALT = "dineastra-demo-2026"
+SECRET = os.getenv("DARPAN_SECRET", "dineastra-demo-secret-not-for-production")
 ALGORITHM = "HS256"
 TOKEN_TTL_HOURS = 12
 

@@ -53,16 +53,16 @@ and flagged in the settlement pack.
 
 ### 3.4 Complimentary beverage service for corporate bookings
 
-For corporate bookings with confirmed covers above one hundred and fifty
-guests, the banquet team extends two hours of complimentary house-pour
+For corporate bookings with confirmed covers above eighty guests, the events
+team extends two hours of complimentary house-pour
 beverage service as a standard relationship courtesy for repeat corporate
 accounts. This service is charged to the event's beverage cost line and is
 not billed back to the client, which typically carries the event's beverage
 cost to around eight per cent of contracted revenue against a segment norm of
 four to five per cent, and softens event margin by five to seven percentage
 points on qualifying events. The courtesy is applied automatically at the
-covers threshold and does not require separate approval; the Director of
-Banquets reviews its cumulative margin effect at each quarterly account
+covers threshold and does not require separate approval; the head of private dining
+reviews its cumulative margin effect at each quarterly account
 review.
 
 ## 4. Settlement

@@ -269,7 +269,7 @@ def validate_upload(filename: str | None, content: bytes) -> tuple[bool, str, st
 
     if not name.endswith(ACCEPTED_SUFFIXES):
         return False, "unsupported_type", (
-            "Darpan reads markdown and plain text. Convert the file to .md or "
+            "DineAstra reads markdown and plain text. Convert the file to .md or "
             ".txt and upload it again."
         )
 

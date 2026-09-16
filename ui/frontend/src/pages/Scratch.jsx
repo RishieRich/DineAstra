@@ -35,7 +35,7 @@ function Scratch() {
           value={4820000}
           formatter={formatCompactCurrency}
           label="Total revenue, trailing 30 days"
-          caption="Room, F&B and banquet revenue combined."
+          caption="Dining room, delivery and private event sales combined."
           provenance={{
             source: 'daily_property.json',
             window: '16 August to 14 September 2026',

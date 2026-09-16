@@ -10,7 +10,7 @@ import ProvenanceLine from './ProvenanceLine'
  * Under prefers-reduced-motion it never animates and the final value is
  * painted immediately.
  */
-const COUNTED_KEY = 'darpan.heroCounted'
+const COUNTED_KEY = 'dineastra.heroCounted'
 
 function hasCountedUp() {
   try {
@@ -41,7 +41,17 @@ function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-function HeroFigure({ value, formatter, label, caption, provenance }) {
+function HeroFigure({
+  value,
+  formatter,
+  label,
+  sublabel,
+  delta,
+  deltaDirection,
+  deltaLabel,
+  caption,
+  provenance,
+}) {
   const shouldAnimate = !hasCountedUp() && !prefersReducedMotion()
   const [shown, setShown] = useState(shouldAnimate ? 0 : value)
   const frameRef = useRef(null)
@@ -88,16 +98,18 @@ function HeroFigure({ value, formatter, label, caption, provenance }) {
   }, [value])
 
   return (
-    <div className="rounded-md bg-burgundy p-lg">
-      {label ? (
-        <p className="text-xs tracking-[0.18em] text-gold-soft">{label}</p>
+    <div className="hero-figure">
+      {label ? <p className="hero-figure__label">{label}</p> : null}
+      <p className="hero-figure__value">{formatter ? formatter(shown) : shown}</p>
+      {sublabel ? <p className="hero-figure__sublabel">{sublabel}</p> : null}
+      {delta ? (
+        <p className={`hero-figure__delta hero-figure__delta--${deltaDirection || 'flat'}`}>
+          <b>{delta}</b> {deltaLabel}
+        </p>
       ) : null}
-      <p className="mt-sm font-serif text-5xl text-gold sm:text-6xl">
-        {formatter ? formatter(shown) : shown}
-      </p>
-      {caption ? <p className="mt-sm text-sm text-gold-soft">{caption}</p> : null}
+      {caption ? <p className="hero-figure__caption">{caption}</p> : null}
       {provenance ? (
-        <ProvenanceLine provenance={provenance} tone="gold" className="mt-md" />
+        <ProvenanceLine provenance={provenance} tone="gold" className="hero-figure__provenance" />
       ) : null}
     </div>
   )

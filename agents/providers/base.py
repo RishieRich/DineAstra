@@ -73,7 +73,7 @@ def resolve_provider(force: str | None = None) -> tuple[Provider, ProviderStatus
         status = candidate.validate()
         attempts.append(status)
         if status.available:
-            logger.info("Darpan answering through %s (%s)", status.name, status.model)
+            logger.info("DineAstra answering through %s (%s)", status.name, status.model)
             return candidate, status
         if status.detail:
             logger.warning("%s unavailable: %s", status.name, status.detail)

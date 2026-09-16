@@ -50,8 +50,20 @@ payload; a mismatch is discarded and the deterministic template is served
 instead. Six unit tests cover it.
 
 **X. Design restraint is a rule, not a preference.**
-No hex literal outside `tokens.css`; no shadow, colour ramp, backdrop blur or
-CSS-forced capitals; no emoji. All three greps return zero results.
+No colour value outside `tokens.css`; no backdrop blur; no emoji. Depth,
+eyebrow capitals and the two brand gradients are permitted, and must be built
+from tokens -- `--shadow-soft`, `--shadow-card`, `--shadow-button` and the
+palette -- never from a literal.
+
+*Amended at the DineAstra rebrand.* The original rule banned `box-shadow`,
+`text-transform` and gradients outright, and the pre-rebrand build kept all
+three at zero. The redesigned presentation uses them deliberately: shadow to
+separate a card from the pearl ground, capitals for eyebrow labels, and a
+gradient on the two brand surfaces. The part of the rule that was actually
+load-bearing -- that no colour is invented outside the token file -- is
+unchanged and still greps to zero. Typographic punctuation (`·`, `→`, `—`,
+`…`, `₹`) is not emoji; the seven glyphs used as navigation icons in
+`components/Shell.jsx` are marked `aria-hidden` and carry a text label.
 
 **XI. The product is usable by keyboard, at phone width, and with motion off.**
 Every interactive element takes a visible gold focus ring; no screen scrolls

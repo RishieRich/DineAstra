@@ -7,8 +7,8 @@ import { useSession } from '../lib/session'
 
 export const SUGGESTION_CHIPS = [
   'Why has food cost risen since the middle of August?',
-  'Which banquet segment earns least, and why?',
-  'Aa mahine occupancy kem vadhyu chhe?',
+  'Which event segment earns least, and why?',
+  'Aa mahine covers kem vadhya chhe?',
 ]
 
 function Ask() {

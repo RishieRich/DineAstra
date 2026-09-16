@@ -49,7 +49,7 @@ def _food_cost(day: str, params: dict) -> FigurePayload:
     trailing = registry.compute("trailing_7_food_cost_pct", day)
     row = repo.daily_property_for(day)
     daily_impact = (
-        round(row["fnb_revenue"] * trailing.delta / 100) if row and trailing.delta else 0
+        round(row["total_revenue"] * trailing.delta / 100) if row and trailing.delta else 0
     )
     return FigurePayload(
         intent="food_cost_rise",
@@ -99,7 +99,7 @@ def _banquet_margin(day: str, params: dict) -> FigurePayload:
 
 def _segment_comparison(day: str, params: dict) -> FigurePayload:
     segments = {}
-    for segment in ("corporate", "wedding", "social", "mice"):
+    for segment in ("corporate", "wedding", "celebration", "group"):
         events = [e for e in repo.banquets_by_segment(segment) if e["date"] <= day]
         if not events:
             continue
@@ -122,25 +122,32 @@ def _segment_comparison(day: str, params: dict) -> FigurePayload:
     )
 
 
-def _occupancy(day: str, params: dict) -> FigurePayload:
-    occupancy = registry.compute("occupancy_pct", day)
-    gap = registry.compute("weekday_occupancy_gap_pts", day)
+def _covers(day: str, params: dict) -> FigurePayload:
+    """How busy the estate was, and against what.
+
+    A restaurant's baseline is the same day of the week, not the trailing
+    mean -- a Tuesday is not a slow Saturday, it is a normal Tuesday.
+    """
+    covers = registry.compute("covers", day)
+    premium = registry.compute("weekend_sales_premium_pts", day)
+    average_spend = registry.compute("average_order_value", day)
     baseline = (
-        round(occupancy.value - occupancy.delta, 1)
-        if occupancy.delta is not None
+        round(covers.value - covers.delta)
+        if covers.value is not None and covers.delta is not None
         else None
     )
-    intent = "occupancy_gu" if params.get("language") == "gu-latn" else "occupancy"
+    intent = "covers_gu" if params.get("language") == "gu-latn" else "covers"
     return FigurePayload(
         intent=intent,
         figures={
             "date": fmt.format_date_long(day),
-            "occupancy_pct": occupancy.formatted,
-            "baseline_occupancy": fmt.format_percent(baseline),
-            "weekday_gap": gap.formatted,
+            "covers": covers.formatted,
+            "baseline_covers": fmt.format_number(baseline),
+            "average_spend": average_spend.formatted,
+            "weekend_premium": premium.formatted,
         },
-        provenance=[occupancy.provenance.to_dict(), gap.provenance.to_dict()],
-        facts={"day_of_week": occupancy.context.get("day_of_week")},
+        provenance=[covers.provenance.to_dict(), premium.provenance.to_dict()],
+        facts={"day_of_week": covers.context.get("day_of_week")},
     )
 
 
@@ -175,7 +182,7 @@ _BUILDERS = {
     "food_cost_rise": _food_cost,
     "banquet_margin": _banquet_margin,
     "segment_comparison": _segment_comparison,
-    "occupancy": _occupancy,
-    "occupancy_gu": _occupancy,
+    "covers": _covers,
+    "covers_gu": _covers,
     "requisition_variance": _requisition_variance,
 }

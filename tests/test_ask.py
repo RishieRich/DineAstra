@@ -36,8 +36,8 @@ def test_mock_mode_needs_no_key(mock_mode):
 def test_each_suggestion_chip_answers_with_computed_figures(mock_mode):
     chips = [
         "Why has food cost risen since the middle of August?",
-        "Which banquet segment earns least, and why?",
-        "Aa mahine occupancy kem vadhyu chhe?",
+        "Which event segment earns least, and why?",
+        "Aa mahine covers kem vadhya chhe?",
     ]
     for chip in chips:
         answer = answer_for(chip)
@@ -50,11 +50,11 @@ def test_each_suggestion_chip_answers_with_computed_figures(mock_mode):
 
 
 def test_the_gujarati_chip_answers_in_gujarati_keeping_english_nouns(mock_mode):
-    answer = answer_for("Aa mahine occupancy kem vadhyu chhe?")
-    assert answer.route["intent"] == "occupancy_gu"
+    answer = answer_for("Aa mahine covers kem vadhya chhe?")
+    assert answer.route["intent"] == "covers_gu"
     for marker in ("na divase", "chhe"):
         assert marker in answer.text
-    for noun in ("occupancy", "corporate", "MICE"):
+    for noun in ("covers", "average spend", "weekend"):
         assert noun in answer.text
 
 

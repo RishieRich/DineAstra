@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
+import { api } from '../lib/api'
 import BrandMark from './BrandMark'
 
 const NAV_GROUPS = [
@@ -36,11 +38,40 @@ const TITLES = {
   '/connections': 'Connections',
 }
 
+/** "14 Sep 2026" from an ISO date, without pulling in a date library. */
+function formatBusinessDate(iso) {
+  const parsed = new Date(`${iso}T00:00:00`)
+  if (Number.isNaN(parsed.getTime())) return null
+  return parsed.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
 function Shell({ children, user, onSignOut }) {
   const location = useLocation()
   const section = location.pathname.startsWith('/banquets/')
     ? 'Event detail'
     : TITLES[location.pathname] || 'Workspace'
+  // The business date the property is reporting on. Read from the API rather
+  // than written into the markup, so it cannot quietly go stale.
+  const [businessDate, setBusinessDate] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    api
+      .health()
+      .then((health) => {
+        if (!cancelled) setBusinessDate(formatBusinessDate(health.today))
+      })
+      .catch(() => {
+        /* the chip simply stays empty; the screens report the real error */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <div className="app-shell">
@@ -85,7 +116,7 @@ function Shell({ children, user, onSignOut }) {
         <header className="topbar">
           <div className="crumbs"><span>Astra House Group</span><b>/</b><strong>{section}</strong></div>
           <div className="topbar-actions">
-            <span className="date-chip">16 Sep 2026</span>
+            {businessDate ? <span className="date-chip">{businessDate}</span> : null}
             <span className="sample-chip"><i /> Sample + uploads</span>
             <span className="user-chip" title={`${user.name} · ${user.role}`}>{user.name?.charAt(0) || 'A'}</span>
             <button type="button" className="signout-button" onClick={onSignOut}>Sign out</button>

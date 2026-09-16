@@ -1,119 +1,68 @@
-# Demo script
+# DineAstra customer demo
 
-Six steps, about four minutes. Runs on a fresh clone with no `.env` and no
-API keys. Everything below is real: the figures are computed from
-`data/`, and the only thing that changes with a key is who writes the prose.
+This is a six-to-eight minute walkthrough of the working localhost prototype. Start the backend and frontend using the commands in `README.md`, then open `http://127.0.0.1:5173`.
 
-## Before you start
+## 1. Premium sample workspace
 
-Two terminals, both at the repository root.
+On the login screen, point out the cascading product capabilities and the distinction between a secure customer workspace and the sample-data environment. Choose **Explore with sample data**, or use `owner@dineastra.demo` / `dineastra`.
 
-```bash
-# terminal 1
-python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt
-.venv/Scripts/python -m uvicorn ui.backend.main:app --port 8000
-```
+## 2. Command centre
 
-```bash
-# terminal 2
-cd ui/frontend && npm install && npm run dev
-```
+The headline is the day's own net sales — what the four outlets actually took on 14 September — not a period total. The window figure sits under it as context.
 
-Open http://localhost:5173. The backend log will say
-`Answering through mock (sample-data)` — that is the intended state with no
-keys.
+Six tiles carry the day: net sales, covers, average spend, food cost, **prime cost** and operating margin. Prime cost is the one to dwell on: food plus labour is the number a restaurant lives or dies by, and either half can look fine while the pair does not. The strip beneath adds delivery share, table turns, sales per seat, labour cost, standards sign-off and events held.
 
----
+Every tile shows where its figure came from on hover, rather than printing six source lines permanently.
 
-## 1. Sign in
+**The two charts are the argument.** Hover anywhere on either.
 
-Enter `owner@darpan.demo` and `darpan`, click **Sign in**.
+- *Net sales by channel* stacks dining room, delivery and private events for each trading day. The weekend rhythm is obvious, and so is the gold band growing: delivery has gone from about 17% of sales to about 24% across the window, and it earns less per rupee than the dining room does.
+- *Food cost vs target* colours each day against the 31% standing target. The window opens green and turns red partway through — that is 16 August, the day the documented vendor rate revision landed. The chart shows the step; the next screen explains it.
 
-Say: the chip in the masthead reads **Sample data**, and it is on every
-screen. Nothing here is connected to a property system, and the app never
-pretends otherwise.
+The window selector defaults to 60 days precisely so that step is inside the frame.
 
-## 2. The Overview, and the one thing that needs attention
+## 3. Incremental workbook load
 
-The hero figure counts up once to **₹4.47Cr**, trailing thirty days, with the
-exact rupee figure under it and its source under that.
+Open **Data Studio** and download the Excel template. It carries three sheets — **Daily Operations**, **Events** and **Requisitions** — with worked examples and customer-facing guidance on each.
 
-Point at the burgundy block below it: food cost has held at **34.6%** for
-seven days, **+3.6 pts** above the standing target, worth about **₹12,339 a
-day**. The property's own F&B policy sets that threshold, and the block says
-which file and which window the figure came from.
+Upload it once. The result reports what came in per sheet, then created, versioned, unchanged and processed rows. Upload the same file again to show that unchanged records are not duplicated.
 
-Then note the metric tiles: each one compares like with like — a Monday
-against other Mondays — because this property runs Monday-to-Thursday heavy
-and a blended average would report the shape of the week as a movement.
+Change `net_sales` for one existing outlet-date in the workbook and upload it again. DineAstra retains the old version, activates the new version, increments **Historical versions**, and records the batch in **Version history**.
 
-## 3. Ask it why — click the alert
+Return to **Command centre**, select the updated date, and show the KPI and chart refresh. The quick-entry form demonstrates the same flow without a file.
 
-Click the alert block. It carries its own question into **Ask** and asks it:
+### Worth showing: what happens to a bad row
+
+Break one row in the workbook — set `food_cost_pct` to `180`, or type a word into `net_sales` — and upload it. The good rows still load; the broken ones come back in a panel naming each row and why it was held back, with a CSV report to download that keeps every original value beside the reason. This is the point to make that a single bad cell does not reject a month of trade.
+
+### Worth showing: starting over
+
+The **Start again** card at the foot of Data Studio discards every uploaded record and returns the workspace to seeded sample data. It requires typing `RESET` and cannot be undone, so it is safe to show and safe to leave alone.
+
+### A note on dates
+
+Uploaded rows for dates after the seeded window are merged and reachable from the date selector, but they do not move the demo's "today", which stays **14 September 2026**. The template's rows are dated 15 and 16 September deliberately, so loading it demonstrates the intake without restating any figure in the scripted walkthrough — and the "See refreshed KPIs" link after an upload takes you straight to the day you just loaded.
+
+## 4. Ask DineAstra
+
+Open **Ask DineAstra** and select a suggested question such as:
 
 > Why has food cost risen since the middle of August?
 
-The answer streams word by word. Under it: the figures behind the answer, the
-policy clause it cites with its last-verified date, the source files, and
-**Number check: pass**.
+The response includes computed evidence, citations, provenance, and a visible number-check result. With an optional AI key, a model writes the prose; the metric calculations and guard remain application-controlled.
 
-Say: the numbers were computed first and the prose was written around them.
-With a key, the model writes these sentences; the figures do not change,
-because a model is never asked for one. If it writes a figure that was not
-computed, the guard throws that answer away and serves the checked one.
+## 5. Operational drill-downs
 
-## 4. Banquets — find the event that lost money
+Open **Events & banquets** and inspect the flagged event and its margin waterfall — BQ-2026-018, a corporate dinner at 55.6% against a 60% segment floor. Then open **Daily proof** for the same-item purchase variance: two requisitions for Basmati Rice on the same day, ₹58 and ₹97, from two different kitchens. These are working seeded-data workflows, not static screenshots.
 
-Go to **Banquets**. One event is flagged below its segment floor:
-**BQ-2026-018, Solstice Analytics Annual Kickoff**. Click it.
+## 6. Operating brain
 
-The waterfall shows where ₹5,00,000 went, and the segments sum exactly to the
-₹2,78,000 net. Against its peers it sits **-5.6 pts** behind a corporate
-average of **61.2%**.
+Open **Operating brain**, generate a checklist from a sample policy, ask a suggested document question, and open the cited source passage. This demonstrates document-grounded operational retrieval.
 
-The cause is on the right, and it is not a guess: 220 covers crossed the
-150-cover threshold in the banquet policy, so two hours of complimentary
-house-pour service was charged to the event, putting beverage cost at 8.0% of
-revenue against a segment norm of four to five. The clause is quoted underneath.
+## 7. Honest roadmap
 
-## 5. Proof — two rates for the same sack of rice
+Finish on **Connections** and the roadmap strips. Direct POS sync, loyalty, scheduled imports, maintenance SLA, and menu engineering are intentionally labelled as future capabilities. The current prototype does not claim those integrations are connected.
 
-Go to **Proof**. Two requisitions were raised on the same day for Basmati
-Rice: **SUB-004182** at ₹58 a unit from the contracted vendor, and
-**SUB-004183** at ₹97 from another. A 67.2% spread, ₹1,560 on the dearer line.
+## Optional real model
 
-Say: nothing here is hardcoded. The API compares same-item requisitions on
-the same day and applies the 40% variance rule from the property's expense
-policy. Both lines are held, not just the expensive one — the policy says the
-cheaper line sometimes carries a substitution, and the screen quotes it.
-
-## 6. The Property Brain — the documents answer back
-
-Go to **Brain**. Click **Generate checklist** on the Darpan Brand Standard.
-
-After about a second it returns **34 tasks across 6 departments**, each with
-the line of the document it came from — a draft to review, not a black box.
-Hand-count the document if you like; it matches.
-
-Now click the chip *What does the brand standard require every department to
-do daily?* The answer cites section 4.2, gives the clause verbatim, adds that
-**33 of 34** tasks were signed off today (**97.1%**), and states the document
-was last verified on **11 September 2026**.
-
-Click the citation. The document opens at that section, in context, with the
-quoted lines marked in gold.
-
-Finish on **Connections**: every card reads **Not connected**. Everything
-just demonstrated ran on generated data, end to end.
-
----
-
-## Optional: run it with a key
-
-Stop the backend, set `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`), start
-it again. The log will say `Answering through gemini`. Ask the same question
-from step 3: the prose is now the model's and the figures are identical.
-
-Set a deliberately wrong `GEMINI_MODEL` and restart: the log lists the model
-ids the key can actually reach, falls through to mock, and every screen still
-works.
+Add a Gemini or Groq key to the local `.env`, change `DARPAN_PROVIDER` to the chosen provider (or remove the override), and restart the backend. If provider validation fails, DineAstra falls back to its deterministic guarded answer bank while the rest of the product stays available.

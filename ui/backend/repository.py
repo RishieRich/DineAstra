@@ -51,8 +51,15 @@ def parse_date(value: str | date | None, default: date | None = None) -> date:
 
 
 def anchor_date() -> date:
-    rows = daily_property_all()
-    return parse_date(rows[-1]["date"]) if rows else ANCHOR_DATE
+    """The simulated "today", always the fixed ANCHOR_DATE.
+
+    Uploaded rows dated after the seeded window are still merged, reachable
+    through the date selector and counted in trailing windows -- but they do
+    not move "today". Every figure the demo is built around is anchored to one
+    business date, and a single late upload would otherwise silently restate
+    all of them.
+    """
+    return ANCHOR_DATE
 
 
 # ---------------------------------------------------------------------------
@@ -61,6 +68,12 @@ def anchor_date() -> date:
 
 
 def daily_property_all() -> list[dict]:
+    """The seeded days, with any accepted upload laid over the matching date.
+
+    An upload restates the trade of the outlets it covers. It is overlaid
+    rather than swapped in wholesale so that facts about the estate rather
+    than the day -- the seat count the per-seat figures divide by -- survive.
+    """
     seeded = list(_load_json("daily_property.json"))
     from ui.backend import data_import_service
 
@@ -68,7 +81,10 @@ def daily_property_all() -> list[dict]:
     if not imported:
         return seeded
     by_date = {row["date"]: row for row in seeded}
-    by_date.update({row["date"]: row for row in imported})
+    for row in imported:
+        by_date[row["date"]] = data_import_service.overlay_daily_row(
+            by_date.get(row["date"]), row
+        )
     return [by_date[key] for key in sorted(by_date)]
 
 
@@ -105,8 +121,29 @@ def property_date_bounds() -> tuple[str, str]:
 # ---------------------------------------------------------------------------
 
 
+def _merge_by_id(seeded: list[dict], imported: list[dict], source: str) -> list[dict]:
+    """Seeded rows with any uploaded row of the same id laid over them.
+
+    An event or a requisition line is a self-contained record, so an upload
+    replaces the whole row rather than patching fields into it -- unlike a
+    business day, where the estate facts have to be carried across.
+    """
+    if not imported:
+        return seeded
+    by_id = {row["id"]: row for row in seeded}
+    for row in imported:
+        by_id[row["id"]] = {**row, "source": source}
+    return sorted(by_id.values(), key=lambda row: (row["date"], row["id"]))
+
+
 def banquets_all() -> list[dict]:
-    return _load_json("banquets.json")
+    from ui.backend import data_import_service
+
+    return _merge_by_id(
+        list(_load_json("banquets.json")),
+        data_import_service.current_events(),
+        "Data Studio",
+    )
 
 
 def banquet_by_id(event_id: str) -> dict | None:
@@ -140,7 +177,13 @@ def banquets_for_date(day: str | date) -> list[dict]:
 
 
 def submissions_all() -> list[dict]:
-    return _load_json("submissions.json")
+    from ui.backend import data_import_service
+
+    return _merge_by_id(
+        list(_load_json("submissions.json")),
+        data_import_service.current_requisitions(),
+        "Data Studio",
+    )
 
 
 def submissions_for_date(day: str | date) -> list[dict]:

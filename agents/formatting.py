@@ -54,6 +54,13 @@ def format_compact_currency(value: float | int | None) -> str:
     return format_currency(value)
 
 
+def format_ratio(value: float | None, decimals: int = 2) -> str:
+    """1.88x -- a count that is meaningfully fractional, like table turns."""
+    if value is None:
+        return "--"
+    return f"{value:.{decimals}f}x"
+
+
 def format_percent(value: float | None, decimals: int = 1) -> str:
     """61.2%"""
     if value is None:

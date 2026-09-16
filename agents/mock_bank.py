@@ -47,7 +47,7 @@ BANK: dict[str, MockAnswer] = {
                 "dates from {step_date}, when the produce and dairy vendor invoked the "
                 "supply-disruption clause and renewed roughly nine per cent higher. "
                 "Property leadership countersigned it, so this is a contracted rate "
-                "change rather than a kitchen control failure. At the current F&B "
+                "change rather than a kitchen control failure. At the current sales "
                 "revenue run rate it costs about {daily_impact} a day. The re-tender "
                 "opens on {retender_date}."
             ),
@@ -90,47 +90,49 @@ BANK: dict[str, MockAnswer] = {
         intent="segment_comparison",
         templates=[
             (
-                "Across {event_count} events, corporate earns most at {corporate_margin} "
-                "and social least at {social_margin}, with wedding at {wedding_margin} and "
-                "MICE at {mice_margin}. The gap is structural rather than operational: "
-                "weddings and social events carry the decor and labour load that corporate "
-                "events do not, which is why the costing policy sets each segment its own "
-                "floor instead of one house number."
+                "Across {event_count} private events, corporate earns most at "
+                "{corporate_margin} and celebration least at {celebration_margin}, with "
+                "wedding at {wedding_margin} and group at {group_margin}. The gap is "
+                "structural rather than operational: weddings and celebrations carry the "
+                "decor, longer service and split-shift labour that a corporate dinner does "
+                "not, which is why the costing policy sets each segment its own floor "
+                "instead of one house number."
             ),
         ],
         required=(
             "event_count",
             "corporate_margin",
-            "social_margin",
+            "celebration_margin",
             "wedding_margin",
-            "mice_margin",
+            "group_margin",
         ),
     ),
-    "occupancy": MockAnswer(
-        intent="occupancy",
+    "covers": MockAnswer(
+        intent="covers",
         templates=[
             (
-                "Occupancy on {date} was {occupancy_pct}, against {baseline_occupancy} "
-                "across comparable days in the trailing thirty. This property runs "
-                "Monday to Thursday heavy: the weekday premium is {weekday_gap}, which is "
-                "the corporate and MICE base rather than anything that moved this week."
+                "The estate served {covers} covers on {date}, against {baseline_covers} "
+                "across comparable days in the trailing thirty, at an average spend of "
+                "{average_spend}. This is a weekend-led group: Friday to Sunday runs "
+                "{weekend_premium} ahead of Monday to Thursday, so a quiet weekday is the "
+                "shape of the week rather than a drop in demand."
             ),
         ],
-        required=("date", "occupancy_pct", "baseline_occupancy", "weekday_gap"),
+        required=("date", "covers", "baseline_covers", "average_spend", "weekend_premium"),
     ),
-    "occupancy_gu": MockAnswer(
+    "covers_gu": MockAnswer(
         # Romanised Gujarati, English financial nouns preserved.
-        intent="occupancy_gu",
+        intent="covers_gu",
         templates=[
             (
-                "{date} na divase occupancy {occupancy_pct} hati, ane trailing thirty "
-                "days na comparable divaso ma {baseline_occupancy} hati. Aa property "
-                "Monday thi Thursday sudhi vadhare bharai chhe: weekday premium "
-                "{weekday_gap} chhe, je corporate ane MICE base chhe, aa week ma kaink "
-                "badlayu che etlu nahi."
+                "{date} na divase estate ma {covers} covers hata, ane trailing thirty "
+                "days na comparable divaso ma {baseline_covers} hata, average spend "
+                "{average_spend} sathe. Aa group weekend-led chhe: Friday thi Sunday "
+                "Monday thi Thursday karta {weekend_premium} aagal chhe, etle dhimo "
+                "weekday e week no shape chhe, demand ma ghatado nahi."
             ),
         ],
-        required=("date", "occupancy_pct", "baseline_occupancy", "weekday_gap"),
+        required=("date", "covers", "baseline_covers", "average_spend", "weekend_premium"),
     ),
     "requisition_variance": MockAnswer(
         intent="requisition_variance",
@@ -172,8 +174,8 @@ BANK: dict[str, MockAnswer] = {
 
 
 REFUSAL = (
-    "Darpan cannot answer that from the property's records. It can account for "
-    "occupancy, rate, revenue, cost, banquet margin and requisitions, and it can "
+    "DineAstra cannot answer that from the property's records. It can account for "
+    "covers, average spend, revenue, cost, event margin and requisitions, and it can "
     "quote the property's own policy documents. Anything outside that, it does "
     "not guess at."
 )
