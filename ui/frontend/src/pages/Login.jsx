@@ -279,7 +279,10 @@ function Login() {
           </div>
 
           <p className="login-hint reveal" style={{ '--delay': '520ms' }}>
-            Demo sign-in: <code>{DEMO_EMAIL}</code> · <code>{DEMO_PASSWORD}</code>
+            Demo sign-in:{' '}
+            <span className="login-hint__pair">
+              <code>{DEMO_EMAIL}</code> · <code>{DEMO_PASSWORD}</code>
+            </span>
             <button type="button" onClick={fillDemoCredentials}>Fill for me</button>
           </p>
 

@@ -83,7 +83,7 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 .login-shell {
   display: grid;
   min-height: 100%;
-  grid-template-columns: minmax(0, 1.08fr) minmax(30rem, 0.92fr);
+  grid-template-columns: minmax(0, 1.04fr) minmax(28rem, 0.96fr);
   background: var(--color-paper);
 }
 
@@ -92,7 +92,7 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 .login-story {
   position: relative;
   display: grid;
-  min-height: 100vh;
+  min-height: 100svh;
   overflow: hidden;
   isolation: isolate;
   background:
@@ -208,7 +208,10 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   z-index: 3;
   display: flex;
   flex-direction: column;
-  padding: clamp(2rem, 5vw, 5rem);
+  /* Vertical padding answers to the viewport's height and horizontal to its
+   * width. Tying both to vw meant a 1366x768 laptop -- the commonest screen
+   * this will ever open on -- spent 136px of a 768px screen on air. */
+  padding: clamp(1.6rem, 3.6vh, 3.4rem) clamp(1.5rem, 4vw, 4.5rem);
 }
 
 .brand-lockup { display: flex; align-items: center; gap: 0.9rem; }
@@ -218,12 +221,21 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 .eyebrow { margin: 0 0 0.8rem; color: var(--color-burgundy); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
 .eyebrow--gold { color: var(--color-gold-bright); }
 
-.login-copy { max-width: 45rem; margin: auto 0 2.6rem; padding-top: 3.5rem; }
+/* The brand sits at the top, and copy/promises/proof form one block that is
+ * centred in whatever is left. The auto margin above the copy and the auto
+ * margin below the proof split the slack evenly. The previous rule put an
+ * auto margin above the copy only, which pushed the whole lower half onto
+ * the floor and left a void under the lockup on a tall screen while the
+ * proof line fell off the bottom of a short one. */
+.login-copy { max-width: 42rem; margin: auto 0 0; padding-top: clamp(1.25rem, 3vh, 2.75rem); }
 .login-copy h1 {
   max-width: 42rem; margin: 0;
   color: var(--color-surface);
   font-family: var(--font-serif);
-  font-size: clamp(2rem, 4vw, 3.25rem);
+  /* Capped against the viewport's height as well as its width: 4vw of a
+   * 1366px laptop is 55px, which is a fine headline on a 1080px-tall screen
+   * and two lines too many on a 768px one. */
+  font-size: clamp(1.85rem, min(4vw, 5.4vh), 3.25rem);
   font-weight: 400; letter-spacing: -0.03em; line-height: 1.12;
 }
 /* Each line arrives on its own, so the sentence is read the way it is
@@ -233,17 +245,30 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   color: var(--color-gold-bright);
   font-style: italic;
 }
-.login-copy > p:last-child { max-width: 38rem; margin: 1.7rem 0 0; font-size: 1rem; line-height: 1.8; }
+.login-copy > p:last-child {
+  max-width: 38rem;
+  margin: clamp(0.9rem, 2vh, 1.7rem) 0 0;
+  font-size: clamp(0.92rem, 1.8vh, 1rem);
+  line-height: 1.65;
+}
 
-.login-promises { display: grid; max-width: 46rem; gap: 0.7rem; }
+.login-promises {
+  display: grid;
+  max-width: 38rem;
+  margin-top: clamp(1rem, 2.4vh, 1.9rem);
+  gap: clamp(0.5rem, 1.1vh, 0.7rem);
+}
 .login-promises > div {
   position: relative;
   display: grid;
-  grid-template-columns: 2.6rem 1fr auto;
+  /* The caption follows the title rather than being flung to the right
+   * edge. On a 736px-wide panel the old `1fr auto` left a third of the row
+   * empty between the two halves of one sentence. */
+  grid-template-columns: 2.6rem auto minmax(0, 1fr);
   align-items: center;
-  gap: 1rem;
+  gap: 0.35rem 0.9rem;
   overflow: hidden;
-  padding: 0.95rem 1.15rem;
+  padding: clamp(0.7rem, 1.6vh, 0.95rem) 1.15rem;
   border: 1px solid var(--veil-line);
   border-radius: var(--radius-md);
   background: var(--veil-fill);
@@ -281,7 +306,7 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em;
 }
 .login-promises strong { color: var(--color-surface); font-size: 0.9rem; }
-.login-promises small { color: var(--color-gold-soft); font-size: 0.75rem; }
+.login-promises small { justify-self: start; color: var(--color-gold-soft); font-size: 0.75rem; }
 
 /* The proof line. One claim at a time, changed on a timer, because three of
  * them side by side would compete with the headline above. */
@@ -289,9 +314,9 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  max-width: 46rem;
-  margin-top: 1.7rem;
-  padding-top: 1.3rem;
+  max-width: 38rem;
+  margin: clamp(1.1rem, 2.4vh, 1.7rem) 0 auto;
+  padding-top: clamp(0.85rem, 1.9vh, 1.3rem);
   border-top: 1px solid var(--veil-line);
   color: var(--color-gold-soft);
   font-size: 0.79rem;
@@ -311,20 +336,23 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 
 /* The access half --------------------------------------------------------- */
 
+/* The card has to clear the status strip above it and still land inside a
+ * 768px-tall laptop screen, so every band of space here is measured against
+ * the viewport's height rather than fixed. */
 .login-access {
   position: relative;
   display: grid;
-  min-height: 100vh;
+  min-height: 100svh;
   align-content: center;
   justify-items: center;
-  padding: clamp(4.5rem, 9vh, 6rem) 2rem 3rem;
+  padding: clamp(3rem, 6vh, 5.5rem) clamp(1.25rem, 3vw, 2.5rem) clamp(2rem, 4vh, 3rem);
   background:
     radial-gradient(72% 52% at 50% 0%, var(--color-burgundy-soft), transparent 72%),
     var(--color-paper);
 }
 .login-access__top {
   position: absolute;
-  inset: 1.5rem 1.5rem auto;
+  inset: clamp(0.9rem, 2vh, 1.5rem) clamp(1rem, 2vw, 1.5rem) auto;
   display: flex;
   justify-content: space-between;
   color: var(--color-muted);
@@ -351,9 +379,12 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 
 .login-card {
   position: relative;
-  width: min(100%, 35rem);
+  /* 35rem was wider than the column could seat: at 1366px it left 34px of
+   * gutter either side and read as a panel jammed into the half rather than
+   * a card sitting in it. */
+  width: min(100%, 32rem);
   overflow: hidden;
-  padding: clamp(2rem, 4vw, 3.2rem);
+  padding: clamp(1.5rem, 3.4vh, 2.9rem) clamp(1.4rem, 3vw, 2.5rem);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
@@ -370,22 +401,28 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   content: '';
 }
 .login-card > * { position: relative; }
-.login-card .eyebrow { margin-top: 1.4rem; }
+.login-card .brand-mark--lg { width: clamp(2.6rem, 5.6vh, 3.25rem); height: clamp(2.6rem, 5.6vh, 3.25rem); }
+.login-card .eyebrow { margin-top: clamp(0.85rem, 1.9vh, 1.4rem); }
 .login-card h2 {
   margin: 0;
   font-family: var(--font-serif);
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: clamp(1.4rem, 2.6vw, 1.85rem);
   font-weight: 600; letter-spacing: -0.025em; line-height: 1.15;
 }
-.login-card__support { margin: 0.75rem 0 1.15rem; color: var(--color-muted); line-height: 1.6; }
-.login-card__foot { margin: 1.5rem 0 0; text-align: center; color: var(--color-muted); font-size: 0.73rem; }
+.login-card__support {
+  margin: clamp(0.5rem, 1.1vh, 0.75rem) 0 clamp(0.7rem, 1.6vh, 1.15rem);
+  color: var(--color-muted);
+  font-size: clamp(0.9rem, 1.7vh, 1rem);
+  line-height: 1.55;
+}
+.login-card__foot { margin: clamp(0.95rem, 2.1vh, 1.5rem) 0 0; text-align: center; color: var(--color-muted); font-size: 0.73rem; }
 
 /* Fields. The icon is decorative and the label carries the name -- it is
  * there so the two rows read as a pair rather than as two loose boxes. */
-.login-field { margin-top: 1.05rem; }
+.login-field { margin-top: clamp(0.65rem, 1.5vh, 1.05rem); }
 .login-field label {
   display: block;
-  margin: 0 0 0.45rem;
+  margin: 0 0 clamp(0.3rem, 0.7vh, 0.45rem);
   color: var(--color-ink);
   font-size: 0.82rem; font-weight: 600;
 }
@@ -404,7 +441,8 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 .login-field__control:focus-within .login-field__icon { color: var(--color-burgundy); }
 .login-field input {
   width: 100%;
-  min-height: 3.4rem;
+  /* Never below 2.9rem, which keeps the 44px minimum touch target. */
+  min-height: clamp(2.9rem, 6.2vh, 3.4rem);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
@@ -450,7 +488,7 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   position: relative;
   display: flex;
   width: 100%;
-  min-height: 3.35rem;
+  min-height: clamp(2.95rem, 6.1vh, 3.35rem);
   align-items: center;
   justify-content: center;
   gap: 0.7rem;
@@ -464,7 +502,7 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
     background-color var(--dur-base) var(--ease-out);
 }
 .primary-button {
-  margin-top: 1.4rem;
+  margin-top: clamp(0.9rem, 2vh, 1.4rem);
   border: 1px solid var(--color-burgundy-deep);
   background: linear-gradient(135deg, var(--color-burgundy), var(--color-burgundy-deep));
   color: var(--color-surface);
@@ -488,7 +526,7 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 .primary-button:hover:not(:disabled) .button-arrow { transform: translateX(3px); }
 
 .demo-button {
-  margin-top: 0.75rem;
+  margin-top: clamp(0.55rem, 1.2vh, 0.75rem);
   border: 1px solid var(--color-line);
   background: var(--color-surface);
   color: var(--color-burgundy);
@@ -514,7 +552,7 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  margin-top: 1.2rem;
+  margin-top: clamp(0.8rem, 1.8vh, 1.2rem);
   color: var(--color-muted);
   font-size: 0.66rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
 }
@@ -532,14 +570,15 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  margin: 1.2rem 0 0;
-  padding: 0.72rem 0.85rem;
+  margin: clamp(0.75rem, 1.7vh, 1.2rem) 0 0;
+  padding: clamp(0.55rem, 1.2vh, 0.72rem) 0.85rem;
   border: 1px dashed var(--color-line);
   border-radius: var(--radius-sm);
   background: var(--color-paper);
   color: var(--color-muted);
   font-size: 0.72rem;
 }
+.login-hint__pair { display: inline-flex; align-items: baseline; gap: 0.4rem; }
 .login-hint code {
   color: var(--color-burgundy);
   font-family: var(--font-sans);
@@ -556,25 +595,53 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 }
 .login-hint button:hover { color: var(--color-burgundy-deep); }
 
-@media (max-width: 960px) {
+/* Stacked, from 1024px down.
+ *
+ * The old breakpoint was 960px, which left a 1024px tablet in the two-column
+ * layout with a 480px access column -- not enough to seat the card without
+ * squeezing it. Anything at or below 1024px stacks instead.
+ *
+ * Stacked, the form comes first. Read in source order the story panel runs
+ * to a full screen and more before the card begins, so a phone opened on
+ * /login showed a page of prose with no way to sign in anywhere on it. The
+ * card carries the mark and the workspace name, so leading with it still
+ * says who this is; the story then reads as what you scroll into. */
+@media (max-width: 1024px) {
   .login-shell { grid-template-columns: 1fr; }
+
+  .login-access {
+    order: -1;
+    min-height: auto;
+    padding: clamp(3.25rem, 9vw, 4.5rem) clamp(1rem, 4vw, 2rem) clamp(2rem, 6vw, 3rem);
+  }
+
   .login-story { min-height: auto; }
-  .login-story__inner { min-height: auto; padding: 2rem 1.5rem 2.5rem; }
-  .login-copy { margin: 4.5rem 0 2.5rem; }
-  .login-copy h1 { font-size: clamp(1.9rem, 8vw, 2.6rem); }
-  .login-access { min-height: auto; padding: 6rem 1rem 3rem; }
+  .login-story__inner {
+    min-height: auto;
+    padding: clamp(2.25rem, 7vw, 3.25rem) clamp(1.5rem, 5vw, 2.5rem) clamp(2.5rem, 8vw, 3.5rem);
+  }
+
+  /* No slack to distribute once the panel is only as tall as its contents,
+   * so the auto margins that centre the block on a desktop come off. */
+  .login-copy { max-width: none; margin: clamp(2rem, 6vw, 3rem) 0 0; padding-top: 0; }
+  .login-copy h1 { font-size: clamp(1.9rem, 5.6vw, 2.6rem); }
+  .login-promises { max-width: none; }
+  .login-proof { max-width: none; margin-bottom: 0; }
+
   .orbit-three { display: none; }
 }
 
 @media (max-width: 620px) {
-  .login-promises > div { grid-template-columns: 2.2rem 1fr; padding: 0.8rem 0.9rem; }
+  .login-promises > div { grid-template-columns: 2.2rem 1fr; gap: 0.25rem 0.8rem; padding: 0.8rem 0.9rem; }
   .login-promises span { width: 2.2rem; height: 2.2rem; }
   .login-promises small { grid-column: 2; }
   .login-promises > div:hover { transform: none; }
-  .login-card { padding: 1.5rem; }
+  .login-card { padding: 1.5rem 1.35rem; }
   .brand-byline { max-width: 14rem; }
   .login-proof { flex-wrap: wrap; }
   .login-proof__dots { margin-left: 0; }
+  /* At this width the strip and the card are both against the same gutter. */
+  .login-access__top { inset: 1.1rem 1.15rem auto; }
 }
 
 
